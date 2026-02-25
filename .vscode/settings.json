@@ -1,0 +1,19 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "107.180.1.16",
+            "port": 3306,
+            "driver": "MariaDB",
+            "username": "cis440sprc26team9",
+            "database": "cis440sprc26team9",
+            "name": "cis440team9",
+            "password": "cis440sprc26team9"
+        }
+    ]
+}

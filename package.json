@@ -1,0 +1,53 @@
+{
+  // The name of your project (used by npm)
+  "name": "recipebook",
+
+  // Version number of your project
+  "version": "1.0.0",
+
+  // Optional description of the project
+  "description": "",
+
+  // The main entry point of your application
+  // When someone runs "node ." it will load server.js
+  "main": "server.js",
+
+  // Scripts you can run with "npm run <script>"
+  "scripts": {
+    // Starts the server by running server.js
+    "start": "node server.js",
+
+    // Placeholder test script (not used in this project)
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+
+  // Optional keywords to help categorize the project
+  "keywords": [],
+
+  // Optional metadata about the author
+  "author": "",
+
+  // License type (ISC is a permissive open-source license)
+  "license": "ISC",
+
+  // Specifies that this project uses CommonJS modules (require/module.exports)
+  "type": "commonjs",
+
+  // All the external libraries your project depends on
+  "dependencies": {
+    // Library for hashing passwords securely
+    "bcrypt": "^6.0.0",
+
+    // Loads environment variables from a .env file
+    "dotenv": "^17.3.1",
+
+    // Web framework used to build the API (routing, middleware, etc.)
+    "express": "^5.2.1",
+
+    // Used to create and verify JSON Web Tokens (JWTs)
+    "jsonwebtoken": "^9.0.3",
+
+    // MySQL client library with Promise support (used for database queries)
+    "mysql2": "^3.18.0"
+  }
+}
