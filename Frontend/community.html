@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Community</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <nav>
+        <a href="dashboard.html">Home</a>
+        <a href="recipes.html">My Recipes</a>
+        <a href="favorites.html">Favorites</a>
+        <a href="community.html">Community</a>
+        <button onclick="logout()">Logout</button>
+    </nav>
+
+    <div class="container">
+        <h1>Community Feed</h1>
+        <div class="card">
+            <h3>User Post Example</h3>
+            <button>Follow</button>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", requireAuth);
+    </script>
+
+</body>
+
+</html>

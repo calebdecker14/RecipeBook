@@ -1,0 +1,35 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+nav {
+    background-color: #2c3e50;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+}
+
+nav a,
+nav h2 {
+    color: white;
+    margin-right: 15px;
+    text-decoration: none;
+}
+
+nav button {
+    margin-left: auto;
+}
+
+.container {
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 6px;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}

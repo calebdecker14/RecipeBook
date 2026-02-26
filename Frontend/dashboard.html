@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <nav>
+        <h2>RecipeBook</h2>
+        <a href="dashboard.html">Home</a>
+        <a href="recipes.html">My Recipes</a>
+        <a href="favorites.html">Favorites</a>
+        <a href="community.html">Community</a>
+        <button onclick="logout()">Logout</button>
+    </nav>
+
+    <div class="container">
+        <h1>Recommended Recipes</h1>
+
+        <div class="card">Recipe Example 1</div>
+        <div class="card">Recipe Example 2</div>
+
+        <hr>
+
+        <h3>Test Protected Backend Route</h3>
+        <button onclick="callProtectedRoute()">Test Authorization</button>
+        <p id="authMessage"></p>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", requireAuth);
+
+        function callProtectedRoute() {
+            const token = localStorage.getItem("token");
+
+            fetch("http://localhost:3000/api/user/profile", {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Unauthorized");
+                    return res.json();
+                })
+                .then(data => {
+                    document.getElementById("authMessage").innerText =
+                        "Authorized! Welcome " + data.username;
+                })
+                .catch(() => {
+                    document.getElementById("authMessage").innerText =
+                        "Authorization failed. Please log in again.";
+                });
+        }
+    </script>
+
+</body>
+
+</html>
