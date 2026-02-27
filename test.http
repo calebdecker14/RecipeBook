@@ -1,15 +1,4 @@
-POST https://urban-trout-x56gr96pvq7j36qv9-3000.app.github.dev/auth/register
-Content-Type: application/json
-
-{
-  "username": "malia",
-  "email": "malia@example.com",
-  "password": "P@ssw0rd!"
-}
-
-
-
-POST https://your-url/auth/login
+POST https://urban-trout-x56gr96pvq7j36qv9-3000.app.github.dev/auth/login
 Content-Type: application/json
 
 {
