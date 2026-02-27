@@ -1,0 +1,7 @@
+POST https://urban-trout-x56gr96pvq7j36qv9-3000.app.github.dev/auth/login
+Content-Type: application/json
+
+{
+  "username": "caleb",
+  "password": "mypassword"
+}
