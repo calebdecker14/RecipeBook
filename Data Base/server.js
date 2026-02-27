@@ -30,6 +30,8 @@ app.get('/db-test', async (req, res) => {
 const authRoutes = require('./routes/auth');
 app.use('/auth', authRoutes);
 
+const userRoutes = require('./routes/users');
+app.use('/users', userRoutes);
 
 
 // 3. Start the server LAST
