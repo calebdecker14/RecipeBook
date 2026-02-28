@@ -1,19 +1,21 @@
+require('dotenv').config();   // <--- REQUIRED
 
 const express = require('express');
+const cors = require('cors');
 const app = express();
 
+app.use(cors());              // <--- REQUIRED for frontend to talk to backend
 app.use(express.json());
 
-// 1. Import the database pool BEFORE routes
-const pool = require('./db/pool');
-
-// 2. Define routes BEFORE app.listen()
+// Import DB pool
+const pool = require('./DataBase/db/pool');
 
 // Root route
 app.get('/', (req, res) => {
     res.send("Server is running!");
 });
 
+// Debug: check JWT secret
 console.log("JWT_SECRET:", process.env.JWT_SECRET);
 
 // Database test route
@@ -27,10 +29,9 @@ app.get('/db-test', async (req, res) => {
     }
 });
 
-const authRoutes = require('./routes/auth');
+// Auth routes
+const authRoutes = require('./DataBase/routes/auth');
 app.use('/auth', authRoutes);
 
-
-
-// 3. Start the server LAST
+// Start server
 app.listen(3000, () => console.log("Server running on port 3000"));
