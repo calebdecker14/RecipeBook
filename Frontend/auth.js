@@ -22,20 +22,20 @@ document.getElementById('login-form').onsubmit = async (e) => {
     e.preventDefault();
     
     // Trim email to prevent accidental space errors
-    const email = document.getElementById('login-email').value.trim();
+    const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-pass').value;
 
     try {
-        const res = await fetch('http://localhost:5000/auth/login', {
+        const res = await fetch('http://localhost:3000/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ username, password })
         });
 
         const json = await res.json();
     // if logins successful, direct to dashboard. if fail, show error
         if (res.ok) {
-            localStorage.setItem('recipe_token', json.token);
+            localStorage.setItem('token', json.token);
             messageBox.className = "success";
             messageBox.innerText = "Login successful! Redirecting...";
             
@@ -45,7 +45,7 @@ document.getElementById('login-form').onsubmit = async (e) => {
             }, 1000);
         } else {
             messageBox.className = "error";
-            messageBox.innerText = json.message || "Invalid credentials.";
+            messageBox.innerText = json.error || json.message || "Invalid credentials.";
         }
     } catch (err) {
         console.error("Login Error:", err); // Human touch: logging the error
@@ -70,7 +70,7 @@ document.getElementById('signup-form').onsubmit = async (e) => {
     }
 
     try {
-        const res = await fetch('http://localhost:5000/auth/register', {
+        const res = await fetch('http://localhost:3000/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, email, password })
@@ -88,7 +88,7 @@ document.getElementById('signup-form').onsubmit = async (e) => {
             }, 1500);
         } else {
             messageBox.className = "error";
-            messageBox.innerText = result.message || "Registration failed.";
+            messageBox.innerText = result.error || result.message || "Registration failed.";
         }
     } catch (err) {
         console.error("Signup Error:", err);

@@ -8,7 +8,7 @@ app.use(cors());              // <--- REQUIRED for frontend to talk to backend
 app.use(express.json());
 
 // Import DB pool
-const pool = require('./db/pool');
+const pool = require('./DataBase/db/pool');
 
 // Root route
 app.get('/', (req, res) => {
@@ -30,7 +30,7 @@ app.get('/db-test', async (req, res) => {
 });
 
 // Auth routes
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./DataBase/routes/auth');
 app.use('/auth', authRoutes);
 
 // Start server
