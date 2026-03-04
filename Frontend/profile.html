@@ -1,0 +1,25 @@
+<body>
+  <h2>Edit Profile</h2>
+
+  <label>Username</label>
+  <input id="username" type="text">
+
+  <label>Email</label>
+  <input id="email" type="email">
+
+  <button onclick="updateProfile()">Save Changes</button>
+
+  <h3>Change Password</h3>
+  <input id="old-pass" type="password" placeholder="Old Password">
+  <input id="new-pass" type="password" placeholder="New Password">
+  <button onclick="changePassword()">Update Password</button>
+
+  <h3>Profile Picture</h3>
+  <input id="pic-input" type="file">
+  <button onclick="uploadPic()">Upload Picture</button>
+
+  <button id="logout-btn">Logout</button>
+  <button id="delete-btn" class="danger">Delete Account</button>
+
+  <script src="js/profile.js"></script>
+</body>
