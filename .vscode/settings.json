@@ -15,5 +15,6 @@
             "name": "cis440team9",
             "password": "cis440sprc26team9"
         }
-    ]
+    ],
+    "liveServer.settings.port": 5501
 }

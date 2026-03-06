@@ -104,7 +104,7 @@ async function uploadPic() {
 // ----------------------
 document.getElementById("logout-btn").onclick = () => {
   localStorage.removeItem("token");
-  window.location.href = "login.html";
+  window.location.href = "Index.html";
 };
 
 // ----------------------
@@ -117,5 +117,5 @@ document.getElementById("delete-btn").onclick = async () => {
   });
 
   localStorage.removeItem("token");
-  window.location.href = "signup.html";
+  window.location.href = "Index.html";
 };
