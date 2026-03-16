@@ -14,9 +14,20 @@
         <a href="favorites.html">Favorites</a>
         <a href="community.html">Community</a>
         <button onclick="logout()">Logout</button>
+
+        <div id="profile-menu">
+            <img id="profile-avatar" src="default.png" />
+
+            <div id="dropdown">
+                <a href="profile.html">Edit Profile</a>
+                <a id="logout-btn">Logout</a>
+                <a id="delete-btn" class="danger">Delete Account</a>
+            </div>
+        </div>
     </nav>
 
     <div class="container">
+
         <h1>My Recipes</h1>
         <button id="showCreate">Create Recipe</button>
 
@@ -40,9 +51,17 @@
         </div>
 
         <div id="feed"></div>
+
+        <button id="create-recipe-btn">Create Recipe</button>
+
+        <!-- Recipes will load here dynamically -->
+        <div id="recipes"></div>
+
     </div>
 
     <script src="auth.js"></script>
+    <script src="recipes.js"></script>
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             console.log("recipes.js DOMContentLoaded");
