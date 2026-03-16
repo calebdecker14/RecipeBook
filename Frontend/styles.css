@@ -64,3 +64,68 @@ nav a {
 #profile-menu:hover #dropdown {
     display: block;
 }
+
+#recipes, #top-rated {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 20px; 
+    margin: 20px 0;
+}
+
+#top-rated-area {
+    background-color: #fffde7; 
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid #fbc02d;
+    margin-bottom: 50px;
+}
+
+/* Individual Card Styling */
+.recipe-card {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+@media (max-width: 850px) {
+    #recipes, #top-rated {
+        grid-template-columns: 1fr;
+    }
+}
+
+.member-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 25px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Keeps titles at the top */
+    min-height: 200px; /* Gives enough room for the bio */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.member-card h3 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 1.3rem;
+    border-bottom: 2px solid #3498db;
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+.bio-placeholder {
+    font-size: 14px;
+    color: #7f8c8d;
+    line-height: 1.6;
+    margin: 0;
+    /* This prevents text from glitching/overflowing */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
