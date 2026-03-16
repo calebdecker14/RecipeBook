@@ -27,16 +27,112 @@
 
     <div class="container">
         <h1>Community Feed</h1>
-        <div class="card">
-            <h3>User Post Example</h3>
-            <button>Follow</button>
-        </div>
+        <div id="feed"></div>
     </div>
 
 
     <script src="auth.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", requireAuth);
+        document.addEventListener("DOMContentLoaded", () => {
+            requireAuth();
+            loadFeed();
+        });
+
+        async function loadFeed() {
+            try {
+                const res = await fetch('http://localhost:3000/recipes');
+                const recipes = await res.json();
+                const feed = document.getElementById('feed');
+                feed.innerHTML = '';
+
+                recipes.forEach(r => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    let inner = `<h3>${r.title}</h3>`;
+                    inner += `<p>${r.description}</p>`;
+                    if (r.estimated_time) inner += `<p><strong>Time:</strong> ${r.estimated_time}</p>`;
+                    inner += `<p><strong>Author:</strong> ${r.author || 'Anonymous'}</p>`;
+                    inner += `<p><strong>Rating:</strong> ${Number(r.average_rating).toFixed(1)} ⭐</p>`;
+                    inner += `<p><strong>Comments:</strong> ${r.comment_count}</p>`;
+                    inner += `<button onclick="commentRecipe(${r.id})">Comment</button> `;
+                    inner += `<button onclick="rateRecipe(${r.id})">Rate</button>`;
+                    card.innerHTML = inner;
+                    feed.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Load feed error', err);
+            }
+        }
+
+        async function commentRecipe(id) {
+            const text = prompt('Enter your comment:');
+            if (!text || !text.trim()) return;
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in to comment.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`http://localhost:3000/recipes/${id}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ comment_text: text.trim() })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('Comment posted!');
+                    loadFeed();
+                } else {
+                    alert(data.error || 'Failed to post comment');
+                }
+            } catch (err) {
+                console.error('Post comment error', err);
+                alert('Failed to post comment');
+            }
+        }
+
+        async function rateRecipe(id) {
+            const ratingStr = prompt('Rate this recipe (1-5):');
+            if (!ratingStr) return;
+
+            const rating = Number(ratingStr);
+            if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+                alert('Please enter a number between 1 and 5');
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in to rate.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`http://localhost:3000/recipes/${id}/ratings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ rating })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('Rating saved!');
+                    loadFeed();
+                } else {
+                    alert(data.error || 'Failed to save rating');
+                }
+            } catch (err) {
+                console.error('Save rating error', err);
+                alert('Failed to save rating');
+            }
+        }
     </script>
 
 </body>
