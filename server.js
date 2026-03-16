@@ -7,6 +7,14 @@ const app = express();
 app.use(cors());              // <--- REQUIRED for frontend to talk to backend
 app.use(express.json());
 
+
+// Serve uploaded profile pictures
+app.use('/uploads', express.static('uploads'));
+
+// Mount routes
+app.use('/profile', require('./DataBase/db/profileRoutes'));
+app.use('/auth', require('./DataBase/routes/auth'));
+
 // Import DB pool
 const pool = require('./DataBase/db/pool');
 
