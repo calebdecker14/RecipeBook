@@ -22,14 +22,14 @@ document.getElementById('login-form').onsubmit = async (e) => {
     e.preventDefault();
     
     // Trim email to prevent accidental space errors
-    const email = document.getElementById('login-email').value.trim();
+    const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-pass').value;
 
     try {
-        const res = await fetch('http://localhost:5000/auth/login', {
+        const res = await fetch('http://localhost:3000/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ username, password })
         });
 
         const json = await res.json();
@@ -70,7 +70,7 @@ document.getElementById('signup-form').onsubmit = async (e) => {
     }
 
     try {
-        const res = await fetch('http://localhost:5000/auth/register', {
+        const res = await fetch('http://localhost:3000/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, email, password })

@@ -4,7 +4,7 @@ const db = require('./pool');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
-const authenticateToken = require('../middleware/authenticateToken');
+const { authenticateToken } = require('../middleware/authMiddleware');
 
 // ----------------------
 // Multer Setup

@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const pool = require("../db/pool");
+const authRequired = require("../../authRequired"); // middleware
+module.exports = router;
 
 // Controllers for recipes, comments, and ratings
 const {
@@ -35,11 +38,7 @@ router.post('/:id/ratings', authenticateToken, postRating);
 // Protected route to create a recipe (requires auth)
 router.post('/', authenticateToken, createRecipe);
 
-module.exports = router;
-const express = require("express");
-const router = express.Router();
-const pool = require("../db/pool");
-const authRequired = require("../../authRequired"); // middleware
+
 
 // GET all recipes
 router.get("/", async (req, res) => {
