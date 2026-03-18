@@ -9,60 +9,11 @@ async function loadRecipes() {
     });
 
     const recipes = await res.json();
+
+    const container = document.getElementById("recipes");
+    container.innerHTML = "";
+
     const user = JSON.parse(localStorage.getItem("user"));
-
-    const mainContainer = document.getElementById("recipes");
-    const topRatedContainer = document.getElementById("top-rated");
-
-    mainContainer.innerHTML = "";
-    if (topRatedContainer) topRatedContainer.innerHTML = "";
-
-    const topRated = [...recipes]
-        .sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0))
-        .slice(0, 3); // Grab the top 3
-
-    const renderCard = (r) => {
-        let buttons = '';
-        if (user && user.id === r.user_id) {
-            buttons = `
-                <button onclick="editRecipe(${r.recipe_id})">Edit</button>
-                <button onclick="deleteRecipe(${r.recipe_id})">Delete</button>
-            `;
-        }
-
-        return `
-            <div class="recipe-card" id="recipe-${r.recipe_id}">
-                <h3>${r.title}</h3>
-                <p>${r.description}</p>
-                <div class="rating-display">
-                    Rating: <strong>${r.average_rating || "Unrated"}</strong> ⭐
-                </div>
-                ${buttons}
-                <div class="interaction-area">
-                    <textarea id="comment-${r.recipe_id}" placeholder="Write a comment..."></textarea>
-                    <button onclick="postComment(${r.recipe_id})">Comment</button>
-                    <div class="star-rating">
-                        ${[1,2,3,4,5].map(n => `<span onclick="rateRecipe(${r.recipe_id},${n})">⭐</span>`).join('')}
-                    </div>
-                </div>
-            </div>
-        `;
-    };
-
-    if (topRatedContainer) {
-        topRated.forEach(r => {
-            topRatedContainer.innerHTML += renderCard(r);
-        });
-    }
-
-    recipes.forEach(r => {
-        mainContainer.innerHTML += renderCard(r);
-    });
-}
-
-
-
-
 
     recipes.forEach(r => {
 

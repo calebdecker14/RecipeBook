@@ -14,7 +14,6 @@
         <a href="recipes.html">My Recipes</a>
         <a href="favorites.html">Favorites</a>
         <a href="community.html">Community</a>
-        <a href="aboutus.html">About Us</a>
     </div>
 
     <div id="profile-menu">
@@ -37,36 +36,28 @@
 
         <hr>
 
-        <h3>Test Protected Backend Route</h3>
-        <button onclick="callProtectedRoute()">Test Authorization</button>
+        <h3>Test Authorization</h3>
+        <button onclick="testAuth()">Test Authorization</button>
         <p id="authMessage"></p>
     </div>
 
     <script src="auth.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", requireAuth);
+        document.addEventListener("DOMContentLoaded", () => {
+            requireAuth();
+        });
 
-        function callProtectedRoute() {
+        function testAuth() {
             const token = localStorage.getItem("token");
+            const messageEl = document.getElementById("authMessage");
 
-            fetch("http://localhost:3000/api/user/profile", {
-                method: "GET",
-                headers: {
-                    "Authorization": "Bearer " + token
-                }
-            })
-                .then(res => {
-                    if (!res.ok) throw new Error("Unauthorized");
-                    return res.json();
-                })
-                .then(data => {
-                    document.getElementById("authMessage").innerText =
-                        "Authorized! Welcome " + data.username;
-                })
-                .catch(() => {
-                    document.getElementById("authMessage").innerText =
-                        "Authorization failed. Please log in again.";
-                });
+            if (token) {
+                messageEl.innerText = "You are logged in! Token found.";
+                messageEl.className = "success";
+            } else {
+                messageEl.innerText = "You are not logged in. Please log in.";
+                messageEl.className = "error";
+            }
         }
     </script>
 
