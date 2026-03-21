@@ -9,20 +9,18 @@
 <body>
 
     <nav>
+        <div>
         <a href="dashboard.html">Home</a>
         <a href="recipes.html">My Recipes</a>
         <a href="favorites.html">Favorites</a>
         <a href="community.html">Community</a>
-        <button onclick="logout()">Logout</button>
+    </div>
 
-        <div id="profile-menu">
-            <img id="profile-avatar" src="default.png" />
-            <div id="dropdown">
-             <a href="profile.html">Edit Profile</a>
-             <a id="logout-btn">Logout</a>
-             <a id="delete-btn" class="danger">Delete Account</a>
-            </div>
-        </div>
+    <div id="profile-menu">
+        <button id="profile-btn" onclick="window.location.href='profile.html'">
+            Account Settings
+        </button>
+    </div>
     </nav>
 
     <div class="container">

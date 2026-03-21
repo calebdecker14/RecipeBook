@@ -1,7 +1,7 @@
 const token = localStorage.getItem("token");
 if (!token) window.location.href = "login.html";
 
-const API = "127.0.0.1:3000/profile";
+const API = "http://localhost:3000/profile";
 
 // ----------------------
 // Load User Info
@@ -23,6 +23,10 @@ async function loadProfile() {
 }
 
 loadProfile();
+
+document.getElementById("back-btn").onclick = () => {
+  window.location.href = "dashboard.html";
+};
 
 // ----------------------
 // Update Profile Info

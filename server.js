@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
+app.use('/uploads', express.static('uploads'));
 
 // Middleware
 app.use(cors());
@@ -43,11 +44,12 @@ app.use('/auth', authRoutes);
 const profileRoutes = require('./DataBase/routes/profileRoutes');
 app.use('/profile', profileRoutes);
 
+
 // Recipes routes
 const recipeRoutes = require('./DataBase/routes/recipes');
 app.use('/recipes', recipeRoutes);
 
-// Comments routes
+// Comments routesS
 const commentRoutes = require('./DataBase/routes/comments');
 app.use('/comments', commentRoutes);
 
