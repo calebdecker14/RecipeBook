@@ -1,174 +1,118 @@
-/* ------------------------------
+:root {
+    --primary: #ff6b6b;
+    --dark: black;
+    --glass: rgba(255, 255, 255, 0.85);
+}
+
+/* -----------------------------------
    Global Layout
------------------------------- */
+----------------------------------- */
 body {
-  margin: 0;
-  padding: 0;
-  font-family: "Segoe UI", sans-serif;
-  background-color: #F5F5F0;
-  color: #333;
-  display: flex;
-  justify-content: center;
-  padding: 40px 0;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+                url('https://images.unsplash.com/photo-1543353071-10c8ba85a904?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+    min-height: 100vh;
+    color: var(--dark);
 }
 
-.container {
-  width: 90%;
-  max-width: 900px;
-  background: #E6D8C3;
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
 
-/* ------------------------------
-   Header
------------------------------- */
-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
+.container { width: 90%; 
+            max-width: 900px; 
+            background: rgba(255, 255, 255, 0.9); 
+            padding: 30px; 
+            border-radius: 16px;
+           box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 
-header .logo {
-  width: 120px;
-  height: auto;
-  margin-bottom: 10px;
-}
+/* ------------------------------ Header ------------------------------ */ 
+header { text-align: center; margin-bottom: 30px; }
 
-header h1 {
-  color: #5D866C;
-  font-size: 2rem;
-  margin: 0;
-}
+header .logo { width: 300px; 
+              height: auto; 
+              margin-bottom: 10px; }
 
-/* ------------------------------
-   Sections
------------------------------- */
-section {
-  background: #F5F5F0;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 25px;
-  border: 2px solid #C2A68C;
-}
+header h1 { color: #ff6b6b; 
+            font-size: 2rem; 
+            margin: 0; }
 
-section h2 {
-  margin-top: 0;
-  color: #5D866C;
-}
+/* ------------------------------ Sections ------------------------------ */ 
+section { background: #F5F5F0; 
+          padding: 20px; 
+          border-radius: 12px; 
+          margin-bottom: 25px; 
+          border: 2px solid #2d3436; }
 
-/* ------------------------------
-   Profile Picture
------------------------------- */
-.avatar {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid #5D866C;
-  display: block;
-  margin: 0 auto 15px auto;
-}
+section h2 { margin-top: 0; color: #ff6b6b; }
 
-/* ------------------------------
-   Inputs
------------------------------- */
-label {
-  display: block;
-  margin-top: 10px;
-  font-weight: bold;
-  color: #5D866C;
-}
+/* ------------------------------ Profile Picture ------------------------------ */ 
+.avatar { width: 140px; 
+        height: 140px; 
+        border-radius: 50%; 
+        object-fit: cover; 
+        border: 4px solid #2d3436; 
+        display: block; 
+        margin: 0 auto 15px auto; }
 
-input, textarea {
-  width: 100%;
-  padding: 10px;
-  margin-top: 6px;
-  border-radius: 8px;
-  border: 2px solid #C2A68C;
-  background: #fff;
-  font-size: 1rem;
-}
 
-textarea {
-  height: 100px;
-  resize: vertical;
-}
+/* ------------------------------ Inputs ------------------------------ */ 
+label { display: block; margin-top: 10px; font-weight: bold; color: #ff6b6b; }
+input, textarea { width: 100%; 
+                  padding: 10px; 
+                  margin-top: 6px; 
+                  border-radius: 8px; 
+                  border: 2px solid #2d3436; 
+                  background: #fff; font-size: 1rem; }
 
-/* ------------------------------
-   Buttons
------------------------------- */
-button {
-  margin-top: 15px;
-  padding: 12px 18px;
-  border: none;
-  border-radius: 8px;
-  background-color: #C2A68C;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: 0.2s;
-}
 
-button:hover {
-  background-color: #5D866C;
-}
+textarea { height: 100px; 
+          resize: vertical; }
 
-/* Danger Button */
-button.danger {
-  background-color: #b84a4a;
-}
 
-button.danger:hover {
-  background-color: #8a2f2f;
-}
+/* ------------------------------ Buttons ------------------------------ */ 
+button { margin-top: 15px; 
+        padding: 12px 18px; 
+        border: none; 
+        border-radius: 8px; 
+        background-color: darkgray; 
+        color: black; 
+        font-size: 1rem; 
+        cursor: pointer; 
+        transition: 0.2s; }
 
-/* ------------------------------
-   Danger Zone
------------------------------- */
-.danger-zone {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
+button:hover { background-color: #ff6b6b; }
 
-.danger-zone button {
-  flex: 1;
-}
+/* Danger Button */ 
+button.danger { background-color: #b84a4a; }
+button.danger:hover { background-color: #8a2f2f; }
 
-/* ------------------------------
-   Responsive
------------------------------- */
-@media (max-width: 600px) {
-  .container {
-    padding: 20px;
-  }
 
-  .danger-zone {
-    flex-direction: column;
-  }
-}
+/* ------------------------------ Danger Zone ------------------------------ */ 
+.danger-zone { display: flex; 
+              justify-content: space-between; 
+              gap: 10px; }
 
-.back-button {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background-color: #C2A68C /* soft neutral */
-  color: #333;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
+.danger-zone button { flex: 1; }
 
-.back-button:hover {
-  background-color: rgba(232, 232, 238, 0.363)
-  transform: translateY(-2px);
-}
+/* ------------------------------ Responsive ------------------------------ */ 
+@media (max-width: 600px) { .container { padding: 20px; }
+.danger-zone { flex-direction: column; } }
 
-.back-button:active {
-  transform: translateY(0);
-}
+.back-button { position: absolute; 
+              top: 20px; left: 20px; 
+              background-color: #ff6b6b /* soft neutral */ color: #000; 
+              border: none; padding: 10px 16px; 
+              border-radius: 8px; font-size: 14px; 
+              cursor: pointer; 
+              box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
+              transition: background-color 0.2s ease, transform 0.2s ease; }
+
+.back-button:hover { background-color: rgba(232, 232, 238, 0.363) transform: translateY(-2px); }
+
+.back-button:active { transform: translateY(0); }
