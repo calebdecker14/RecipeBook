@@ -3,7 +3,7 @@
 
 <head>
     <title>Edit Recipe</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -14,23 +14,27 @@
     </nav>
 
     <div class="container">
-
         <h2>Edit Recipe</h2>
 
-        <input id="title" placeholder="Recipe Title"><br><br>
+        <!-- FORM (IMPORTANT) -->
+        <form id="editRecipeForm">
 
-        <textarea id="description" placeholder="Recipe Description"></textarea><br><br>
+            <label>Title:</label><br>
+            <input type="text" id="title" placeholder="Recipe Title" required><br><br>
 
-        <button onclick="updateRecipe()">Update Recipe</button>
+            <label>Description:</label><br>
+            <textarea id="description" placeholder="Recipe Description" required></textarea><br><br>
 
+            <label>Estimated Time:</label><br>
+            <input type="text" id="estimated_time" placeholder="e.g. 20 minutes"><br><br>
+
+            <button type="submit">Update Recipe</button>
+
+        </form>
     </div>
 
     <script src="auth.js"></script>
     <script src="editRecipe.js"></script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", requireAuth);
-    </script>
 
 </body>
 
