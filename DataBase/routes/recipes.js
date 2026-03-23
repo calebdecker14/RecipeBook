@@ -1,117 +1,67 @@
 const express = require('express');
 const router = express.Router();
 
-// Controllers for recipes, comments, and ratings
+// Controllers for recipes
 const {
     createRecipe,
     getRecipes,
-    getRecipeById
+    getRecipeById,
+    updateRecipe //  ADDED
 } = require('../controllers/recipesController');
+
+// Controllers for comments
 const {
     getCommentsForRecipe,
     postComment
 } = require('../controllers/commentsController');
+
+// Controllers for ratings
 const {
     getRatingsForRecipe,
     postRating
 } = require('../controllers/ratingsController');
 
+// Auth middleware
 const { authenticateToken } = require('../middleware/authMiddleware');
 
-// Public route to fetch all recipes (public feed)
+
+// =====================
+// RECIPES ROUTES
+// =====================
+
+// Get all recipes (public feed)
 router.get('/', getRecipes);
 
-// Public route to fetch a single recipe by ID
+// Get a single recipe by ID
 router.get('/:id', getRecipeById);
 
-// Comments on a recipe
-router.get('/:id/comments', getCommentsForRecipe);
-router.post('/:id/comments', authenticateToken, postComment);
-
-// Ratings on a recipe
-router.get('/:id/ratings', getRatingsForRecipe);
-router.post('/:id/ratings', authenticateToken, postRating);
-
-// Protected route to create a recipe (requires auth)
+// Create a recipe (requires login)
 router.post('/', authenticateToken, createRecipe);
 
-module.exports = router;
-const express = require("express");
-const router = express.Router();
-const pool = require("../db/pool");
-const authRequired = require("../../authRequired"); // middleware
+// UPDATE RECIPE (THIS WAS MISSING)
+router.put('/:id', authenticateToken, updateRecipe);
 
-// GET all recipes
-router.get("/", async (req, res) => {
-    try {
-        const result = await pool.query("SELECT * FROM recipes ORDER BY recipe_id DESC");
-        res.json(result.rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Server error");
-    }
-});
 
-// GET single recipe
-router.get("/:id", async (req, res) => {
-    try {
-        const recipeId = req.params.id;
+// =====================
+// COMMENTS ROUTES
+// =====================
 
-        const result = await pool.query(
-            "SELECT * FROM recipes WHERE recipe_id=$1",
-            [recipeId]
-        );
+// Get all comments for a recipe
+router.get('/:id/comments', getCommentsForRecipe);
 
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Server error");
-    }
-});
+// Post a comment (requires login)
+router.post('/:id/comments', authenticateToken, postComment);
 
-// UPDATE recipe (owner only)
-router.put("/:id", authRequired, async (req, res) => {
-    try {
-        const recipeId = req.params.id;
-        const { title, description } = req.body;
-        const userId = req.user.id;
 
-        const result = await pool.query(
-            "UPDATE recipes SET title=$1, description=$2 WHERE recipe_id=$3 AND user_id=$4 RETURNING *",
-            [title, description, recipeId, userId]
-        );
+// =====================
+// RATINGS ROUTES
+// =====================
 
-        if (result.rowCount === 0) {
-            return res.status(403).send("Not authorized");
-        }
+// Get ratings for a recipe
+router.get('/:id/ratings', getRatingsForRecipe);
 
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Server error");
-    }
-});
+// Post a rating (requires login)
+router.post('/:id/ratings', authenticateToken, postRating);
 
-// DELETE recipe
-router.delete("/:id", authRequired, async (req, res) => {
-    try {
-        const recipeId = req.params.id;
-        const userId = req.user.id;
-
-        const result = await pool.query(
-            "DELETE FROM recipes WHERE recipe_id=$1 AND user_id=$2",
-            [recipeId, userId]
-        );
-
-        if (result.rowCount === 0) {
-            return res.status(403).send("Not authorized");
-        }
-
-        res.send("Deleted");
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Server error");
-    }
-});
 
 module.exports = router;

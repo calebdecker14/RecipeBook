@@ -15,9 +15,6 @@
         <a href="community.html">Community</a>
         <button onclick="logout()">Logout</button>
 
-        <div id="profile-menu">
-            <img id="profile-avatar" src="default.png" />
-
             <div id="dropdown">
                 <a href="profile.html">Edit Profile</a>
                 <a id="logout-btn">Logout</a>
@@ -31,18 +28,18 @@
         <h1>My Recipes</h1>
         <button id="showCreate">Create Recipe</button>
 
-        <!-- form initially hidden -->
+        <!-- Create Form -->
         <div id="createForm" class="card" style="display:none; margin-top:20px;">
             <h3>New Recipe</h3>
             <form id="recipeForm">
                 <label>Title (max 25):</label><br>
-                <input type="text" id="title" name="title" maxlength="25" required><br>
+                <input type="text" id="title" maxlength="25" required><br>
 
                 <label>Description (max 150):</label><br>
-                <textarea id="description" name="description" maxlength="150" rows="4" required></textarea><br>
+                <textarea id="description" maxlength="150" rows="4" required></textarea><br>
 
                 <label>Estimated Time:</label><br>
-                <input type="text" id="estimated_time" name="estimated_time"><br><br>
+                <input type="text" id="estimated_time"><br><br>
 
                 <button type="submit">Submit</button>
                 <button type="button" id="cancelCreate">Cancel</button>
@@ -52,20 +49,12 @@
 
         <div id="feed"></div>
 
-        <button id="create-recipe-btn">Create Recipe</button>
-
-        <!-- Recipes will load here dynamically -->
-        <div id="recipes"></div>
-
     </div>
 
     <script src="auth.js"></script>
-    <script src="recipes.js"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            console.log("recipes.js DOMContentLoaded");
-
             requireAuth();
             loadFeed();
 
@@ -73,15 +62,8 @@
             const createForm = document.getElementById('createForm');
             const cancelBtn = document.getElementById('cancelCreate');
 
-            if (!showBtn) console.error("showCreate button missing!");
-            if (!createForm) console.error("createForm element missing!");
-            if (!cancelBtn) console.error("cancelCreate button missing!");
-
-            showBtn.onclick = () => {
-                console.log("Create Recipe clicked");
-                createForm.style.display = 'block';
-            };
-            cancelBtn.onclick = () => { createForm.style.display = 'none'; };
+            showBtn.onclick = () => createForm.style.display = 'block';
+            cancelBtn.onclick = () => createForm.style.display = 'none';
 
             document.getElementById('recipeForm').onsubmit = async (e) => {
                 e.preventDefault();
@@ -89,7 +71,7 @@
             };
         });
 
-        // Load recipes from the backend and render them in the feed
+        // LOAD ALL RECIPES
         async function loadFeed() {
             try {
                 const res = await fetch('http://localhost:3000/recipes');
@@ -100,23 +82,64 @@
                 recipes.forEach(r => {
                     const card = document.createElement('div');
                     card.className = 'card';
+
                     let inner = `<h3>${r.title}</h3>`;
                     inner += `<p>${r.description}</p>`;
-                    if (r.estimated_time) inner += `<p><strong>Time:</strong> ${r.estimated_time}</p>`;
+
+                    if (r.estimated_time) {
+                        inner += `<p><strong>Time:</strong> ${r.estimated_time}</p>`;
+                    }
+
                     inner += `<p><strong>Author:</strong> ${r.author || 'Anonymous'}</p>`;
-                    inner += `<p><strong>Rating:</strong> ${Number(r.average_rating).toFixed(1)} ⭐</p>`;
+                    inner += `<p><strong>Rating:</strong> ${Number(r.average_rating).toFixed(1)} *</p>`;
                     inner += `<p><strong>Comments:</strong> ${r.comment_count}</p>`;
-                    inner += `<button onclick="commentRecipe(${r.id})">Comment</button> `;
+
+                    // ✅ COMMENTS DISPLAY AREA
+                    inner += `<div id="comments-${r.id}" class="comments-box">Loading comments...</div>`;
+
+                    // Buttons
+                    inner += `<button onclick="commentRecipe(${r.id})">Comment</button>`;
                     inner += `<button onclick="rateRecipe(${r.id})">Rate</button>`;
+                    inner += `<button onclick="editRecipe(${r.id})">Edit</button>`;
+
                     card.innerHTML = inner;
                     feed.appendChild(card);
+
+                    // ✅ LOAD COMMENTS FOR EACH RECIPE
+                    loadComments(r.id);
                 });
+
             } catch (err) {
                 console.error('Load feed error', err);
             }
         }
 
-        // Prompt user for a comment and send it to the API
+        // LOAD COMMENTS
+        async function loadComments(recipeId) {
+            try {
+                const res = await fetch(`http://localhost:3000/recipes/${recipeId}/comments`);
+                const comments = await res.json();
+
+                const container = document.getElementById(`comments-${recipeId}`);
+                container.innerHTML = '';
+
+                if (!comments.length) {
+                    container.innerHTML = '<p>No comments yet.</p>';
+                    return;
+                }
+
+                comments.forEach(c => {
+                    const p = document.createElement('p');
+                    p.innerHTML = `<strong>${c.username || 'User'}:</strong> ${c.comment_text}`;
+                    container.appendChild(p);
+                });
+
+            } catch (err) {
+                console.error("Load comments error", err);
+            }
+        }
+
+        // ADD COMMENT
         async function commentRecipe(id) {
             const text = prompt('Enter your comment:');
             if (!text || !text.trim()) return;
@@ -136,35 +159,33 @@
                     },
                     body: JSON.stringify({ comment_text: text.trim() })
                 });
-                const data = await res.json();
+
                 if (res.ok) {
                     alert('Comment posted!');
-                    loadFeed();
+                    loadFeed(); // refresh everything
                 } else {
+                    const data = await res.json();
                     alert(data.error || 'Failed to post comment');
                 }
+
             } catch (err) {
-                console.error('Post comment error', err);
+                console.error(err);
                 alert('Failed to post comment');
             }
         }
 
-        // Prompt user for a rating and send it to the API
+        // RATE
         async function rateRecipe(id) {
             const ratingStr = prompt('Rate this recipe (1-5):');
             if (!ratingStr) return;
 
             const rating = Number(ratingStr);
             if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-                alert('Please enter a number between 1 and 5');
+                alert('Enter a number 1-5');
                 return;
             }
 
             const token = localStorage.getItem('token');
-            if (!token) {
-                alert('You must be logged in to rate.');
-                return;
-            }
 
             try {
                 const res = await fetch(`http://localhost:3000/recipes/${id}/ratings`, {
@@ -175,30 +196,25 @@
                     },
                     body: JSON.stringify({ rating })
                 });
-                const data = await res.json();
+
                 if (res.ok) {
                     alert('Rating saved!');
                     loadFeed();
-                } else {
-                    alert(data.error || 'Failed to save rating');
                 }
+
             } catch (err) {
-                console.error('Save rating error', err);
+                console.error(err);
                 alert('Failed to save rating');
             }
         }
 
-        // Submit the create recipe form to the backend
+        // CREATE RECIPE
         async function submitRecipe() {
             const title = document.getElementById('title').value.trim();
             const description = document.getElementById('description').value.trim();
             const estimated_time = document.getElementById('estimated_time').value.trim();
 
             const token = localStorage.getItem('token');
-            if (!token) {
-                alert('You must be logged in to create a recipe.');
-                return;
-            }
 
             try {
                 const res = await fetch('http://localhost:3000/recipes', {
@@ -211,21 +227,28 @@
                 });
 
                 const msg = await res.json();
-                const messageBox = document.getElementById('formMessage');
+                const box = document.getElementById('formMessage');
+
                 if (res.ok) {
-                    messageBox.className = 'success';
-                    messageBox.innerText = msg.message;
+                    box.className = 'success';
+                    box.innerText = msg.message;
                     document.getElementById('recipeForm').reset();
                     document.getElementById('createForm').style.display = 'none';
                     loadFeed();
                 } else {
-                    messageBox.className = 'error';
-                    messageBox.innerText = msg.error || 'Failed to create recipe';
+                    box.className = 'error';
+                    box.innerText = msg.error;
                 }
+
             } catch (err) {
-                console.error('Submit recipe error', err);
-                alert('Unable to talk to server.');
+                console.error(err);
+                alert('Server error');
             }
+        }
+
+        // EDIT REDIRECT
+        function editRecipe(id) {
+            window.location.href = `editRecipe.html?id=${id}`;
         }
     </script>
 
