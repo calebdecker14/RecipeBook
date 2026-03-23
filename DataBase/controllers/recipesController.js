@@ -94,3 +94,46 @@ exports.getRecipeById = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch recipe' });
     }
 };
+
+// Update an existing recipe
+exports.updateRecipe = async (req, res) => {
+    try {
+        const { title, description, estimated_time } = req.body;
+        const recipeId = parseInt(req.params.id, 10);
+
+        if (Number.isNaN(recipeId)) {
+            return res.status(400).json({ error: 'Invalid recipe id' });
+        }
+
+        if (!title || title.trim().length === 0 || title.length > 25) {
+            return res.status(400).json({ error: 'Title must be 1-25 characters' });
+        }
+
+        if (!description || description.trim().length === 0 || description.length > 150) {
+            return res.status(400).json({ error: 'Description must be 1-150 characters' });
+        }
+
+        const sql = `
+            UPDATE recipes
+            SET title = ?, description = ?, estimated_time = ?
+            WHERE id = ?
+        `;
+
+        const [result] = await pool.query(sql, [
+            title.trim(),
+            description.trim(),
+            estimated_time || null,
+            recipeId
+        ]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Recipe not found' });
+        }
+
+        res.json({ message: 'Recipe updated successfully' });
+
+    } catch (err) {
+        console.error('updateRecipe error:', err);
+        res.status(500).json({ error: 'Failed to update recipe' });
+    }
+};

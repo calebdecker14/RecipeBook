@@ -1,17 +1,17 @@
-// Get token from localStorage
+// Get token
 const token = localStorage.getItem("token");
 
 // Get recipe ID from URL
 const params = new URLSearchParams(window.location.search);
 const recipeId = params.get("id");
 
-// Redirect if no ID (safety check)
+// If no ID, redirect
 if (!recipeId) {
     alert("No recipe selected.");
     window.location.href = "recipes.html";
 }
 
-// Load recipe data into form
+// Load recipe into form
 async function loadRecipe() {
     try {
         const res = await fetch(`http://localhost:3000/recipes/${recipeId}`, {
@@ -26,29 +26,23 @@ async function loadRecipe() {
 
         const recipe = await res.json();
 
-        // Populate form fields
         document.getElementById("title").value = recipe.title || "";
         document.getElementById("description").value = recipe.description || "";
-
-        // Optional field (only if exists in your HTML)
-        const timeField = document.getElementById("estimated_time");
-        if (timeField) {
-            timeField.value = recipe.estimated_time || "";
-        }
+        document.getElementById("estimated_time").value = recipe.estimated_time || "";
 
     } catch (err) {
-        console.error("Error loading recipe:", err);
+        console.error("Load error:", err);
         alert("Failed to load recipe.");
     }
 }
 
 // Update recipe
 async function updateRecipe() {
+    console.log("Update clicked"); // 🔥 debug
+
     const title = document.getElementById("title").value.trim();
     const description = document.getElementById("description").value.trim();
-
-    const timeField = document.getElementById("estimated_time");
-    const estimated_time = timeField ? timeField.value.trim() : "";
+    const estimated_time = document.getElementById("estimated_time").value.trim();
 
     if (!title || !description) {
         alert("Title and description are required.");
@@ -82,6 +76,7 @@ async function updateRecipe() {
 
 // Run when page loads
 document.addEventListener("DOMContentLoaded", () => {
+
     if (!token) {
         alert("You must be logged in.");
         window.location.href = "index.html";
@@ -90,12 +85,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadRecipe();
 
-    // Attach form submit handler
+    // FORM SUBMIT HANDLER (KEY FIX)
     const form = document.getElementById("editRecipeForm");
-    if (form) {
-        form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            updateRecipe();
-        });
-    }
+
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        updateRecipe();
+    });
 });
