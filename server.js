@@ -1,24 +1,27 @@
-require('dotenv').config();   // <--- REQUIRED
+require('dotenv').config();
 
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+
 const app = express();
+app.use('/uploads', express.static('uploads'));
 
-app.use(cors());              // <--- REQUIRED for frontend to talk to backend
+// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // Add URL-encoded parser
 
-// Serve uploaded images from /uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, 'Frontend')));
+
+// Root route → serve Index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Frontend', 'Index.html'));
+});
 
 // Import DB pool
 const pool = require('./DataBase/db/pool');
-
-// Root route
-app.get('/', (req, res) => {
-    res.send("Server is running!");
-});
 
 // Debug: check JWT secret
 console.log("JWT_SECRET:", process.env.JWT_SECRET);
@@ -38,80 +41,25 @@ app.get('/db-test', async (req, res) => {
 const authRoutes = require('./DataBase/routes/auth');
 app.use('/auth', authRoutes);
 
+// Profile routes
+const profileRoutes = require('./DataBase/routes/profileRoutes');
+app.use('/profile', profileRoutes);
+
+
 // Recipes routes
-const recipesRoutes = require('./DataBase/routes/recipes');
-app.use('/recipes', recipesRoutes);
+const recipeRoutes = require('./DataBase/routes/recipes');
+app.use('/recipes', recipeRoutes);
 
-// Automatically create required tables if they don't exist.
-// This is useful for simple student projects or early development.
-(async () => {
-    try {
-        // recipes table: stores published recipes
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS recipes (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                user_id INT,
-                title VARCHAR(25) NOT NULL,
-                description VARCHAR(150) NOT NULL,
-                estimated_time VARCHAR(50),
-                image_url VARCHAR(255),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-            )
-        `);
+// Comments routesS
+const commentRoutes = require('./DataBase/routes/comments');
+app.use('/comments', commentRoutes);
 
-        // Add missing columns if table already existed before this change
-        try {
-            await pool.query(`ALTER TABLE recipes ADD COLUMN image_url VARCHAR(255)`);
-        } catch (err) {
-            // ignore if column already exists
-            if (err.code !== 'ER_DUP_FIELDNAME') {
-                console.warn('Could not add image_url column:', err);
-            }
-        }
-
-        try {
-            await pool.query(`ALTER TABLE recipes ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`);
-        } catch (err) {
-            // ignore if column already exists
-            if (err.code !== 'ER_DUP_FIELDNAME') {
-                console.warn('Could not add/update updated_at column:', err);
-            }
-        }
-
-        // comments table: users can comment on recipes
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS comments (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                recipe_id INT NOT NULL,
-                user_id INT,
-                comment_text VARCHAR(500) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-            )
-        `);
-
-        // ratings table: users can rate recipes 1-5
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS ratings (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                recipe_id INT NOT NULL,
-                user_id INT,
-                rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE KEY uniq_recipe_user (recipe_id, user_id),
-                FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-            )
-        `);
-
-        console.log('Ensured recipe/comment/rating tables exist');
-    } catch (err) {
-        console.error('Error ensuring tables exist:', err);
-    }
-})();
+// Ratings routes
+const ratingRoutes = require('./DataBase/routes/ratings');
+app.use('/ratings', ratingRoutes);
 
 // Start server
-app.listen(3000, () => console.log("Server running on port 3000"));
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+});

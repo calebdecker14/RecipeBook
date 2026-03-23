@@ -8,15 +8,20 @@
 
 <body>
 
-    <nav>
-        <h2>RecipeBook</h2>
+   <nav>
+    <div>
         <a href="dashboard.html">Home</a>
         <a href="recipes.html">My Recipes</a>
         <a href="favorites.html">Favorites</a>
         <a href="community.html">Community</a>
-        <button onclick="logout()">Logout</button>
-    </nav>
+    </div>
 
+    <div id="profile-menu">
+        <button id="profile-btn" onclick="window.location.href='profile.html'">
+            Account Settings
+        </button>
+    </div>
+</nav>
     <div class="container">
         <h1>Recommended Recipes</h1>
 

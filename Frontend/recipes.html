@@ -8,27 +8,35 @@
 
 <body>
 
-    <nav>
+     <nav>
+        <div>
         <a href="dashboard.html">Home</a>
         <a href="recipes.html">My Recipes</a>
         <a href="favorites.html">Favorites</a>
         <a href="community.html">Community</a>
-        <button onclick="logout()">Logout</button>
+    </div>
+
+    <div id="profile-menu">
+        <button id="profile-btn" onclick="window.location.href='profile.html'">
+            Account Settings
+        </button>
+    </div>
     </nav>
 
     <div class="container">
+
         <h1>My Recipes</h1>
         <button id="showCreate">Create Recipe</button>
 
-        <!-- form initially hidden -->
+        <!-- Create Form -->
         <div id="createForm" class="card" style="display:none; margin-top:20px;">
             <h3>New Recipe</h3>
             <form id="recipeForm" enctype="multipart/form-data">
                 <label>Title (max 25):</label><br>
-                <input type="text" id="title" name="title" maxlength="25" required><br>
+                <input type="text" id="title" maxlength="25" required><br>
 
                 <label>Description (max 150):</label><br>
-                <textarea id="description" name="description" maxlength="150" rows="4" required></textarea><br>
+                <textarea id="description" maxlength="150" rows="4" required></textarea><br>
 
                 <label>Estimated Time:</label><br>
                 <input type="text" id="estimated_time" name="estimated_time"><br>
@@ -45,15 +53,15 @@
         </div>
 
         <div id="feed"></div>
+
     </div>
 
     <script src="auth.js"></script>
+
     <script>
         let editingRecipeId = null;
 
         document.addEventListener("DOMContentLoaded", () => {
-            console.log("recipes.js DOMContentLoaded");
-
             requireAuth();
             loadFeed();
 
@@ -163,6 +171,7 @@
                 recipes.forEach(r => {
                     const card = document.createElement('div');
                     card.className = 'card';
+
                     let inner = `<h3>${r.title}</h3>`;
 
                     const imageUrl = r.image_url
@@ -189,7 +198,11 @@
                     inner += `<button onclick="editRecipe(${r.id})">Edit</button>`;
                     card.innerHTML = inner;
                     feed.appendChild(card);
+
+                    // ✅ LOAD COMMENTS FOR EACH RECIPE
+                    loadComments(r.id);
                 });
+
             } catch (err) {
                 console.error('Load feed error', err);
             }
@@ -246,35 +259,33 @@
                     },
                     body: JSON.stringify({ comment_text: text.trim() })
                 });
-                const data = await res.json();
+
                 if (res.ok) {
                     alert('Comment posted!');
-                    loadFeed();
+                    loadFeed(); // refresh everything
                 } else {
+                    const data = await res.json();
                     alert(data.error || 'Failed to post comment');
                 }
+
             } catch (err) {
-                console.error('Post comment error', err);
+                console.error(err);
                 alert('Failed to post comment');
             }
         }
 
-        // Prompt user for a rating and send it to the API
+        // RATE
         async function rateRecipe(id) {
             const ratingStr = prompt('Rate this recipe (1-5):');
             if (!ratingStr) return;
 
             const rating = Number(ratingStr);
             if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-                alert('Please enter a number between 1 and 5');
+                alert('Enter a number 1-5');
                 return;
             }
 
             const token = localStorage.getItem('token');
-            if (!token) {
-                alert('You must be logged in to rate.');
-                return;
-            }
 
             try {
                 const res = await fetch(`http://localhost:3000/recipes/${id}/ratings`, {
@@ -285,20 +296,19 @@
                     },
                     body: JSON.stringify({ rating })
                 });
-                const data = await res.json();
+
                 if (res.ok) {
                     alert('Rating saved!');
                     loadFeed();
-                } else {
-                    alert(data.error || 'Failed to save rating');
                 }
+
             } catch (err) {
-                console.error('Save rating error', err);
+                console.error(err);
                 alert('Failed to save rating');
             }
         }
 
-        // Submit the create recipe form to the backend
+        // CREATE RECIPE
         async function submitRecipe() {
             const title = document.getElementById('title').value.trim();
             const description = document.getElementById('description').value.trim();
@@ -353,10 +363,16 @@
                     messageBox.className = 'error';
                     messageBox.innerText = errorText;
                 }
+
             } catch (err) {
-                console.error('Submit recipe error', err);
-                alert('Unable to talk to server.');
+                console.error(err);
+                alert('Server error');
             }
+        }
+
+        // EDIT REDIRECT
+        function editRecipe(id) {
+            window.location.href = `editRecipe.html?id=${id}`;
         }
     </script>
 

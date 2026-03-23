@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Recipe Book • Account Settings</title>
+  <link rel="stylesheet" href="profile.css">
+</head>
+
+<body>
+  <div class="container">
+
+<button id="back-btn" class="back-button">← Back to Dashboard</button>
+
+    <header>
+      <img src="http://127.0.0.1:3000/uploads/Logo.png" class="logo">
+      <h1>Account Settings</h1>
+    </header>
+
+    <section class="profile-section">
+      <img id="profile-pic" class="avatar" src="" alt="Profile Picture">
+      <input id="pic-input" type="file">
+      <button onclick="uploadPic()">Upload Picture</button>
+    </section>
+
+    <section class="info-section">
+      <h2>Profile Info</h2>
+
+      <label>Username</label>
+      <input id="username" type="text">
+
+      <label>Email</label>
+      <input id="email" type="email">
+
+      <button onclick="updateProfile()">Save Changes</button>
+    </section>
+
+    <section class="bio-section">
+      <h2>Bio</h2>
+      <textarea id="bio" placeholder="Tell us about yourself..."></textarea>
+      <button onclick="updateBio()">Update Bio</button>
+    </section>
+
+    <section class="password-section">
+      <h2>Change Password</h2>
+      <input id="old-pass" type="password" placeholder="Old Password">
+      <input id="new-pass" type="password" placeholder="New Password">
+      <button onclick="changePassword()">Update Password</button>
+    </section>
+
+    <section class="danger-zone">
+      <button id="logout-btn">Logout</button>
+      <button id="delete-btn" class="danger">Delete Account</button>
+    </section>
+
+  </div>
+
+  <script src="profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My Recipes</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <nav>
+        <a href="dashboard.html">Home</a>
+        <a href="recipes.html">My Recipes</a>
+        <a href="favorites.html">Favorites</a>
+        <a href="community.html">Community</a>
+        <button onclick="logout()">Logout</button>
+
+        <div id="profile-menu">
+            <img id="profile-avatar" src="default.png" />
+
+            <div id="dropdown">
+                <a href="profile.html">Edit Profile</a>
+                <a id="logout-btn">Logout</a>
+                <a id="delete-btn" class="danger">Delete Account</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <h1>My Recipes</h1>
+
+        <button id="create-recipe-btn">Create Recipe</button>
+
+        <!-- Recipes will load here dynamically -->
+        <div id="recipes"></div>
+
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="recipes.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", requireAuth);
+    </script>
+
+</body>
+
+</html>

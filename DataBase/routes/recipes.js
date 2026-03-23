@@ -52,15 +52,20 @@ const {
     getMyRecipes,
     updateRecipe
 } = require('../controllers/recipesController');
+
+// Controllers for comments
 const {
     getCommentsForRecipe,
     postComment
 } = require('../controllers/commentsController');
+
+// Controllers for ratings
 const {
     getRatingsForRecipe,
     postRating
 } = require('../controllers/ratingsController');
 
+// Auth middleware
 const { authenticateToken } = require('../middleware/authMiddleware');
 
 // Protected route to create a recipe (requires auth)
@@ -107,12 +112,32 @@ router.put('/:id', authenticateToken, (req, res, next) => {
 // Public route to fetch a single recipe by ID
 router.get('/:id', getRecipeById);
 
-// Comments on a recipe
+// Create a recipe (requires login)
+router.post('/', authenticateToken, createRecipe);
+
+// UPDATE RECIPE (THIS WAS MISSING)
+router.put('/:id', authenticateToken, updateRecipe);
+
+
+// =====================
+// COMMENTS ROUTES
+// =====================
+
+// Get all comments for a recipe
 router.get('/:id/comments', getCommentsForRecipe);
+
+// Post a comment (requires login)
 router.post('/:id/comments', authenticateToken, postComment);
 
-// Ratings on a recipe
+
+// =====================
+// RATINGS ROUTES
+// =====================
+
+// Get ratings for a recipe
 router.get('/:id/ratings', getRatingsForRecipe);
+
+// Post a rating (requires login)
 router.post('/:id/ratings', authenticateToken, postRating);
 
 module.exports = router;
