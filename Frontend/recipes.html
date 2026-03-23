@@ -31,7 +31,7 @@
         <!-- Create Form -->
         <div id="createForm" class="card" style="display:none; margin-top:20px;">
             <h3>New Recipe</h3>
-            <form id="recipeForm">
+            <form id="recipeForm" enctype="multipart/form-data">
                 <label>Title (max 25):</label><br>
                 <input type="text" id="title" maxlength="25" required><br>
 
@@ -39,8 +39,13 @@
                 <textarea id="description" maxlength="150" rows="4" required></textarea><br>
 
                 <label>Estimated Time:</label><br>
-                <input type="text" id="estimated_time"><br><br>
+                <input type="text" id="estimated_time" name="estimated_time"><br>
 
+                <label>Picture (optional):</label><br>
+                <input type="file" id="image" name="image" accept="image/*"><br>
+                <div id="imagePreview" style="margin-top: 10px;"></div>
+
+                <br>
                 <button type="submit">Submit</button>
                 <button type="button" id="cancelCreate">Cancel</button>
             </form>
@@ -54,6 +59,8 @@
     <script src="auth.js"></script>
 
     <script>
+        let editingRecipeId = null;
+
         document.addEventListener("DOMContentLoaded", () => {
             requireAuth();
             loadFeed();
@@ -61,47 +68,134 @@
             const showBtn = document.getElementById('showCreate');
             const createForm = document.getElementById('createForm');
             const cancelBtn = document.getElementById('cancelCreate');
+            const formTitle = createForm.querySelector('h3');
+            const submitBtn = document.querySelector('#recipeForm button[type="submit"]');
+            const imagePreview = document.getElementById('imagePreview');
 
-            showBtn.onclick = () => createForm.style.display = 'block';
-            cancelBtn.onclick = () => createForm.style.display = 'none';
+            if (!showBtn) console.error("showCreate button missing!");
+            if (!createForm) console.error("createForm element missing!");
+            if (!cancelBtn) console.error("cancelCreate button missing!");
+
+            function resetForm() {
+                document.getElementById('recipeForm').reset();
+                imagePreview.innerHTML = '';
+                editingRecipeId = null;
+                formTitle.textContent = 'New Recipe';
+                submitBtn.textContent = 'Submit';
+            }
+
+            showBtn.onclick = () => {
+                resetForm();
+                createForm.style.display = 'block';
+            };
+            cancelBtn.onclick = () => {
+                createForm.style.display = 'none';
+                resetForm();
+            };
 
             document.getElementById('recipeForm').onsubmit = async (e) => {
                 e.preventDefault();
                 await submitRecipe();
             };
+
+            const imageInput = document.getElementById('image');
+            imageInput.addEventListener('change', () => {
+                const file = imageInput.files[0];
+                if (!file) {
+                    imagePreview.innerHTML = '';
+                    return;
+                }
+                imagePreview.innerHTML = `<p><strong>Selected:</strong> ${file.name}</p>`;
+            });
+
+            window.editRecipe = async (id) => {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        alert('You must be logged in to edit a recipe.');
+                        return;
+                    }
+
+                    const res = await fetch(`http://localhost:3000/recipes/${id}`, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        alert(data.error || 'Unable to load recipe for editing.');
+                        return;
+                    }
+
+                    editingRecipeId = id;
+                    formTitle.textContent = 'Edit Recipe';
+                    submitBtn.textContent = 'Update';
+                    createForm.style.display = 'block';
+
+                    document.getElementById('title').value = data.title || '';
+                    document.getElementById('description').value = data.description || '';
+                    document.getElementById('estimated_time').value = data.estimated_time || '';
+                    document.getElementById('image').value = '';
+
+                    if (data.image_url) {
+                        imagePreview.innerHTML = `<div><strong>Current Photo:</strong><br><img src="${data.image_url}" alt="Current recipe photo" style="max-width:200px; max-height:200px; display:block; margin-top:5px;" /></div>`;
+                    } else {
+                        imagePreview.innerHTML = '<p><em>No Picture Uploaded</em></p>';
+                    }
+                } catch (err) {
+                    console.error('Load recipe for edit failed', err);
+                    alert('Failed to load recipe for editing.');
+                }
+            };
         });
 
-        // LOAD ALL RECIPES
+        // Load recipes from the backend and render them in the feed
         async function loadFeed() {
             try {
-                const res = await fetch('http://localhost:3000/recipes');
+                const token = localStorage.getItem('token');
+                const res = await fetch('http://localhost:3000/recipes/my', {
+                    headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+                });
                 const recipes = await res.json();
                 const feed = document.getElementById('feed');
                 feed.innerHTML = '';
+
+                if (!res.ok) {
+                    feed.innerHTML = '<p style="color:red;">Error: ' + (recipes.error || 'Failed to load recipes') + '</p>';
+                    return;
+                }
+
+                if (recipes.length === 0) {
+                    feed.innerHTML = '<p>You have not posted any recipes yet. Click "Create Recipe" to share your first recipe!</p>';
+                    return;
+                }
 
                 recipes.forEach(r => {
                     const card = document.createElement('div');
                     card.className = 'card';
 
                     let inner = `<h3>${r.title}</h3>`;
-                    inner += `<p>${r.description}</p>`;
 
-                    if (r.estimated_time) {
-                        inner += `<p><strong>Time:</strong> ${r.estimated_time}</p>`;
+                    const imageUrl = r.image_url
+                        ? (r.image_url.startsWith('http') ? r.image_url : `http://localhost:3000${r.image_url}`)
+                        : null;
+
+                    if (imageUrl) {
+                        inner += `<img src="${imageUrl}" alt="Recipe image" style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;" />`;
+                    } else {
+                        inner += `<p><em>No Picture Uploaded</em></p>`;
                     }
 
-                    inner += `<p><strong>Author:</strong> ${r.author || 'Anonymous'}</p>`;
-                    inner += `<p><strong>Rating:</strong> ${Number(r.average_rating).toFixed(1)} *</p>`;
+                    inner += `<p>${r.description}</p>`;
+                    if (r.estimated_time) inner += `<p><strong>Time:</strong> ${r.estimated_time}</p>`;
+                    inner += `<p><strong>Author:</strong> ${r.author || 'You'}</p>`;
+                    inner += `<p><strong>Published:</strong> ${formatTimeAgo(r.created_at)}</p>`;
+                    if (r.updated_at && new Date(r.updated_at).getTime() !== new Date(r.created_at).getTime()) {
+                        inner += `<p><strong>Updated:</strong> ${formatTimeAgo(r.updated_at)}</p>`;
+                    }
+                    inner += `<p><strong>Rating:</strong> ${Number(r.average_rating).toFixed(1)} ⭐</p>`;
                     inner += `<p><strong>Comments:</strong> ${r.comment_count}</p>`;
-
-                    // ✅ COMMENTS DISPLAY AREA
-                    inner += `<div id="comments-${r.id}" class="comments-box">Loading comments...</div>`;
-
-                    // Buttons
-                    inner += `<button onclick="commentRecipe(${r.id})">Comment</button>`;
-                    inner += `<button onclick="rateRecipe(${r.id})">Rate</button>`;
+                    inner += `<button onclick="commentRecipe(${r.id})">Comment</button> `;
+                    inner += `<button onclick="rateRecipe(${r.id})">Rate</button> `;
                     inner += `<button onclick="editRecipe(${r.id})">Edit</button>`;
-
                     card.innerHTML = inner;
                     feed.appendChild(card);
 
@@ -114,32 +208,38 @@
             }
         }
 
-        // LOAD COMMENTS
-        async function loadComments(recipeId) {
-            try {
-                const res = await fetch(`http://localhost:3000/recipes/${recipeId}/comments`);
-                const comments = await res.json();
+        function formatTimeAgo(value) {
+            if (!value) return '';
 
-                const container = document.getElementById(`comments-${recipeId}`);
-                container.innerHTML = '';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
 
-                if (!comments.length) {
-                    container.innerHTML = '<p>No comments yet.</p>';
-                    return;
-                }
+            // Compute MST time (UTC-7) to keep relative times consistent regardless of the user's local timezone
+            const msOffset = 7 * 60 * 60 * 1000; // 7 hours
+            const nowMst = Date.now() - msOffset;
+            const dateMst = date.getTime() - msOffset;
 
-                comments.forEach(c => {
-                    const p = document.createElement('p');
-                    p.innerHTML = `<strong>${c.username || 'User'}:</strong> ${c.comment_text}`;
-                    container.appendChild(p);
-                });
+            const seconds = Math.floor((nowMst - dateMst) / 1000);
 
-            } catch (err) {
-                console.error("Load comments error", err);
+            if (seconds < 60) {
+                return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
             }
+
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) {
+                return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+            }
+
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) {
+                return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+            }
+
+            const days = Math.floor(hours / 24);
+            return `${days} day${days !== 1 ? 's' : ''} ago`;
         }
 
-        // ADD COMMENT
+        // Prompt user for a comment and send it to the API
         async function commentRecipe(id) {
             const text = prompt('Enter your comment:');
             if (!text || !text.trim()) return;
@@ -213,31 +313,55 @@
             const title = document.getElementById('title').value.trim();
             const description = document.getElementById('description').value.trim();
             const estimated_time = document.getElementById('estimated_time').value.trim();
+            const imageInput = document.getElementById('image');
 
             const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in to create a recipe.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('estimated_time', estimated_time);
+            if (imageInput.files[0]) {
+                formData.append('image', imageInput.files[0]);
+            }
+
+            const url = editingRecipeId ? `http://localhost:3000/recipes/${editingRecipeId}` : 'http://localhost:3000/recipes';
+            const method = editingRecipeId ? 'PUT' : 'POST';
 
             try {
-                const res = await fetch('http://localhost:3000/recipes', {
-                    method: 'POST',
+                const res = await fetch(url, {
+                    method,
                     headers: {
-                        'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: JSON.stringify({ title, description, estimated_time })
+                    body: formData
                 });
 
-                const msg = await res.json();
-                const box = document.getElementById('formMessage');
+                const messageBox = document.getElementById('formMessage');
+                let msg;
+                try {
+                    msg = await res.json();
+                } catch (jsonErr) {
+                    console.error('Response was not JSON:', jsonErr);
+                    msg = { error: 'Server returned an invalid response. Please try again.' };
+                }
 
                 if (res.ok) {
-                    box.className = 'success';
-                    box.innerText = msg.message;
+                    messageBox.className = 'success';
+                    messageBox.innerText = msg.message || (editingRecipeId ? 'Recipe updated successfully' : 'Recipe created successfully');
                     document.getElementById('recipeForm').reset();
                     document.getElementById('createForm').style.display = 'none';
+                    editingRecipeId = null;
                     loadFeed();
                 } else {
-                    box.className = 'error';
-                    box.innerText = msg.error;
+                    const errorText = msg.error || msg.message || `Request failed (${res.status})`;
+                    console.error('Create/update recipe failed', res.status, msg);
+                    messageBox.className = 'error';
+                    messageBox.innerText = errorText;
                 }
 
             } catch (err) {

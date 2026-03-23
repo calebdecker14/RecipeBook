@@ -1,5 +1,7 @@
 const pool = require('../db/pool');
 
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+
 // Create a new recipe entry in the database
 // Expects title, description, estimated_time (optional) and requires auth
 exports.createRecipe = async (req, res) => {
@@ -16,12 +18,14 @@ exports.createRecipe = async (req, res) => {
 
         const user_id = req.user ? req.user.id : null;
 
+        const image_url = req.file ? `${BASE_URL}/uploads/${req.file.filename}` : null;
+
         const sql = `
-            INSERT INTO recipes (user_id, title, description, estimated_time)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO recipes (user_id, title, description, estimated_time, image_url)
+            VALUES (?, ?, ?, ?, ?)
         `;
 
-        await pool.query(sql, [user_id, title.trim(), description.trim(), estimated_time || null]);
+        await pool.query(sql, [user_id, title.trim(), description.trim(), estimated_time || null, image_url]);
 
         res.json({ message: 'Recipe created successfully' });
     } catch (err) {
@@ -39,7 +43,9 @@ exports.getRecipes = async (req, res) => {
                 r.title,
                 r.description,
                 r.estimated_time,
+                r.image_url,
                 r.created_at,
+                r.updated_at,
                 u.username AS author,
                 COALESCE(AVG(rt.rating), 0) AS average_rating,
                 COUNT(c.id) AS comment_count
@@ -72,7 +78,9 @@ exports.getRecipeById = async (req, res) => {
                 r.title,
                 r.description,
                 r.estimated_time,
+                r.image_url,
                 r.created_at,
+                r.updated_at,
                 u.username AS author,
                 COALESCE(AVG(rt.rating), 0) AS average_rating,
                 COUNT(c.id) AS comment_count

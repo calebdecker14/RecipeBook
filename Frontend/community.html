@@ -47,9 +47,24 @@
                     const card = document.createElement('div');
                     card.className = 'card';
                     let inner = `<h3>${r.title}</h3>`;
+
+                    const imageUrl = r.image_url
+                        ? (r.image_url.startsWith('http') ? r.image_url : `http://localhost:3000${r.image_url}`)
+                        : null;
+
+                    if (imageUrl) {
+                        inner += `<img src="${imageUrl}" alt="Recipe image" style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;" />`;
+                    } else {
+                        inner += `<p><em>No Picture Uploaded</em></p>`;
+                    }
+
                     inner += `<p>${r.description}</p>`;
                     if (r.estimated_time) inner += `<p><strong>Time:</strong> ${r.estimated_time}</p>`;
                     inner += `<p><strong>Author:</strong> ${r.author || 'Anonymous'}</p>`;
+                    inner += `<p><strong>Published:</strong> ${formatTimeAgo(r.created_at)}</p>`;
+                    if (r.updated_at && new Date(r.updated_at).getTime() !== new Date(r.created_at).getTime()) {
+                        inner += `<p><strong>Updated:</strong> ${formatTimeAgo(r.updated_at)}</p>`;
+                    }
                     inner += `<p><strong>Rating:</strong> ${Number(r.average_rating).toFixed(1)} ⭐</p>`;
                     inner += `<p><strong>Comments:</strong> ${r.comment_count}</p>`;
                     inner += `<button onclick="commentRecipe(${r.id})">Comment</button> `;
@@ -60,6 +75,37 @@
             } catch (err) {
                 console.error('Load feed error', err);
             }
+        }
+
+        function formatTimeAgo(value) {
+            if (!value) return '';
+
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+
+            // Compute MST time (UTC-7) to keep relative times consistent regardless of the user's local timezone
+            const msOffset = 7 * 60 * 60 * 1000; // 7 hours
+            const nowMst = Date.now() - msOffset;
+            const dateMst = date.getTime() - msOffset;
+
+            const seconds = Math.floor((nowMst - dateMst) / 1000);
+
+            if (seconds < 60) {
+                return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
+            }
+
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) {
+                return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+            }
+
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) {
+                return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+            }
+
+            const days = Math.floor(hours / 24);
+            return `${days} day${days !== 1 ? 's' : ''} ago`;
         }
 
         async function commentRecipe(id) {
