@@ -1,7 +1,5 @@
 const pool = require('../db/pool');
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-
 // Create a new recipe entry in the database
 // Expects title, description, estimated_time (optional) and requires auth
 exports.createRecipe = async (req, res) => {
@@ -18,7 +16,7 @@ exports.createRecipe = async (req, res) => {
 
         const user_id = req.user ? req.user.id : null;
 
-        const image_url = req.file ? `${BASE_URL}/uploads/${req.file.filename}` : null;
+        const image_url = req.file ? `/uploads/${req.file.filename}` : null;
 
         const sql = `
             INSERT INTO recipes (user_id, title, description, estimated_time, image_url)
@@ -121,18 +119,36 @@ exports.updateRecipe = async (req, res) => {
             return res.status(400).json({ error: 'Description must be 1-150 characters' });
         }
 
-        const sql = `
+        const image_url = req.file ? `/uploads/${req.file.filename}` : undefined;
+
+        let sql = `
             UPDATE recipes
             SET title = ?, description = ?, estimated_time = ?
             WHERE id = ?
         `;
-
-        const [result] = await pool.query(sql, [
+        let params = [
             title.trim(),
             description.trim(),
             estimated_time || null,
             recipeId
-        ]);
+        ];
+
+        if (image_url !== undefined) {
+            sql = `
+                UPDATE recipes
+                SET title = ?, description = ?, estimated_time = ?, image_url = ?
+                WHERE id = ?
+            `;
+            params = [
+                title.trim(),
+                description.trim(),
+                estimated_time || null,
+                image_url,
+                recipeId
+            ];
+        }
+
+        const [result] = await pool.query(sql, params);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Recipe not found' });
@@ -143,5 +159,38 @@ exports.updateRecipe = async (req, res) => {
     } catch (err) {
         console.error('updateRecipe error:', err);
         res.status(500).json({ error: 'Failed to update recipe' });
+    }
+};
+
+// Return recipes for the current user
+exports.getMyRecipes = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+
+        const [rows] = await pool.query(`
+            SELECT
+                r.id,
+                r.title,
+                r.description,
+                r.estimated_time,
+                r.image_url,
+                r.created_at,
+                r.updated_at,
+                u.username AS author,
+                COALESCE(AVG(rt.rating), 0) AS average_rating,
+                COUNT(c.id) AS comment_count
+            FROM recipes r
+            LEFT JOIN users u ON r.user_id = u.id
+            LEFT JOIN ratings rt ON rt.recipe_id = r.id
+            LEFT JOIN comments c ON c.recipe_id = r.id
+            WHERE r.user_id = ?
+            GROUP BY r.id
+            ORDER BY r.created_at DESC
+        `, [user_id]);
+
+        res.json(rows);
+    } catch (err) {
+        console.error('getMyRecipes error:', err);
+        res.status(500).json({ error: 'Failed to fetch recipes' });
     }
 };

@@ -38,7 +38,7 @@
 
         async function loadFeed() {
             try {
-                const res = await fetch('http://localhost:3000/recipes');
+                const res = await fetch('/recipes');
                 const recipes = await res.json();
                 const feed = document.getElementById('feed');
                 feed.innerHTML = '';
@@ -48,9 +48,7 @@
                     card.className = 'card';
                     let inner = `<h3>${r.title}</h3>`;
 
-                    const imageUrl = r.image_url
-                        ? (r.image_url.startsWith('http') ? r.image_url : `http://localhost:3000${r.image_url}`)
-                        : null;
+                    const imageUrl = r.image_url;
 
                     if (imageUrl) {
                         inner += `<img src="${imageUrl}" alt="Recipe image" style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;" />`;
@@ -119,7 +117,7 @@
             }
 
             try {
-                const res = await fetch(`http://localhost:3000/recipes/${id}/comments`, {
+                const res = await fetch(`/recipes/${id}/comments`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -157,7 +155,7 @@
             }
 
             try {
-                const res = await fetch(`http://localhost:3000/recipes/${id}/ratings`, {
+                const res = await fetch(`/recipes/${id}/ratings`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -1,7 +1,7 @@
 const token = localStorage.getItem("token");
 if (!token) window.location.href = "login.html";
 
-const API = "http://localhost:3000/profile";
+const API = "/profile";
 
 // ----------------------
 // Load User Info

@@ -116,7 +116,7 @@
                         return;
                     }
 
-                    const res = await fetch(`http://localhost:3000/recipes/${id}`, {
+                    const res = await fetch(`/recipes/${id}`, {
                         headers: { 'Authorization': 'Bearer ' + token }
                     });
                     const data = await res.json();
@@ -151,7 +151,7 @@
         async function loadFeed() {
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch('http://localhost:3000/recipes/my', {
+                const res = await fetch('/recipes/my', {
                     headers: token ? { 'Authorization': 'Bearer ' + token } : {}
                 });
                 const recipes = await res.json();
@@ -159,7 +159,8 @@
                 feed.innerHTML = '';
 
                 if (!res.ok) {
-                    feed.innerHTML = '<p style="color:red;">Error: ' + (recipes.error || 'Failed to load recipes') + '</p>';
+                    const data = await res.json().catch(() => ({ error: 'Failed to load recipes' }));
+                    alert('Error loading recipes: ' + (data.error || 'Unknown error'));
                     return;
                 }
 
@@ -174,9 +175,7 @@
 
                     let inner = `<h3>${r.title}</h3>`;
 
-                    const imageUrl = r.image_url
-                        ? (r.image_url.startsWith('http') ? r.image_url : `http://localhost:3000${r.image_url}`)
-                        : null;
+                    const imageUrl = r.image_url;
 
                     if (imageUrl) {
                         inner += `<img src="${imageUrl}" alt="Recipe image" style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;" />`;
@@ -251,7 +250,7 @@
             }
 
             try {
-                const res = await fetch(`http://localhost:3000/recipes/${id}/comments`, {
+                const res = await fetch(`/recipes/${id}/comments`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -288,7 +287,7 @@
             const token = localStorage.getItem('token');
 
             try {
-                const res = await fetch(`http://localhost:3000/recipes/${id}/ratings`, {
+                const res = await fetch(`/recipes/${id}/ratings`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -329,7 +328,7 @@
                 formData.append('image', imageInput.files[0]);
             }
 
-            const url = editingRecipeId ? `http://localhost:3000/recipes/${editingRecipeId}` : 'http://localhost:3000/recipes';
+            const url = editingRecipeId ? `/recipes/${editingRecipeId}` : '/recipes';
             const method = editingRecipeId ? 'PUT' : 'POST';
 
             try {
@@ -351,17 +350,14 @@
                 }
 
                 if (res.ok) {
-                    messageBox.className = 'success';
-                    messageBox.innerText = msg.message || (editingRecipeId ? 'Recipe updated successfully' : 'Recipe created successfully');
+                    alert('Recipe created successfully');
                     document.getElementById('recipeForm').reset();
                     document.getElementById('createForm').style.display = 'none';
                     editingRecipeId = null;
                     loadFeed();
                 } else {
                     const errorText = msg.error || msg.message || `Request failed (${res.status})`;
-                    console.error('Create/update recipe failed', res.status, msg);
-                    messageBox.className = 'error';
-                    messageBox.innerText = errorText;
+                    alert('Error creating recipe: ' + errorText);
                 }
 
             } catch (err) {

@@ -67,7 +67,7 @@ if (getEl('login-form') && getEl('signup-form')) {
         const password = getEl('login-pass')?.value || '';
 
         try {
-            const res = await fetch('http://localhost:3000/auth/login', {
+            const res = await fetch('/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -103,7 +103,7 @@ if (getEl('login-form') && getEl('signup-form')) {
         }
 
         try {
-            const res = await fetch('http://localhost:3000/auth/register', {
+            const res = await fetch('/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password })
@@ -168,7 +168,7 @@ document.getElementById('login-form').onsubmit = async (e) => {
     const password = document.getElementById('login-pass').value;
 
     try {
-        const res = await fetch('http://localhost:3000/auth/login', {
+        const res = await fetch('/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -212,7 +212,7 @@ document.getElementById('signup-form').onsubmit = async (e) => {
     }
 
     try {
-        const res = await fetch('http://localhost:3000/auth/register', {
+        const res = await fetch('/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, email, password })

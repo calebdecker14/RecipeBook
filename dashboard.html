@@ -49,7 +49,7 @@
         function callProtectedRoute() {
             const token = localStorage.getItem("token");
 
-            fetch("http://localhost:3000/api/user/profile", {
+            fetch("/profile", {
                 method: "GET",
                 headers: {
                     "Authorization": "Bearer " + token

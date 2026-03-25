@@ -90,6 +90,10 @@ router.post('/', authenticateToken, (req, res, next) => {
 router.get('/', getRecipes);
 
 // Protected route to fetch only the current user's recipes (requires auth)
+router.get('/my', authenticateToken, getMyRecipes);
+
+// Public route to fetch a single recipe by ID
+router.get('/:id', getRecipeById);
 
 
 // Protected route to update a recipe (requires auth + ownership)
