@@ -1,6 +1,6 @@
 :root {
-    --primary: #ff6b6b;
-    --dark: #2d3436;
+    --primary: #f9bf4c;
+    --dark: #1a4811;
     --glass: rgba(255, 255, 255, 0.85);
 }
 
@@ -76,7 +76,7 @@ input:focus {
 }
 
 .btn-primary:hover {
-    background: #ee5253;
+    background: #1a4811;
     transform: translateY(-2px);
 }
 
