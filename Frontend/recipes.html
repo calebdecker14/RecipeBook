@@ -26,6 +26,47 @@
     <div class="container">
 
         <h1>My Recipes</h1>
+
+        <div class="card" style="margin-bottom:20px;">
+            <h3>Filter Recipes</h3>
+            <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+                <div>
+                    <label for="timeFilter">Estimated Time</label><br>
+                    <select id="timeFilter">
+                        <option value="">All</option>
+                        <option value="0-5">0-5 minutes</option>
+                        <option value="5-15">5-15 minutes</option>
+                        <option value="15-45">15-45 minutes</option>
+                        <option value="45+">45-60+ minutes</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="ratingFilter">Rating</label><br>
+                    <select id="ratingFilter">
+                        <option value="">All</option>
+                        <option value="0-1">0-1 stars</option>
+                        <option value="2-3">2-3 stars</option>
+                        <option value="4-5">4-5 stars</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="commentFilter">Comments</label><br>
+                    <select id="commentFilter">
+                        <option value="">All</option>
+                        <option value="has_comments">Has comments</option>
+                        <option value="no_comments">No comments</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button id="applyFilters" type="button">Apply Filters</button>
+                    <button id="clearFilters" type="button">Clear</button>
+                </div>
+            </div>
+        </div>
+
         <button id="showCreate">Create Recipe</button>
 
 
@@ -95,10 +136,30 @@
             const formTitle = createForm.querySelector('h3');
             const submitBtn = document.querySelector('#recipeForm button[type="submit"]');
             const imagePreview = document.getElementById('imagePreview');
+            const timeFilterEl = document.getElementById('timeFilter');
+            const ratingFilterEl = document.getElementById('ratingFilter');
+            const commentFilterEl = document.getElementById('commentFilter');
+            const applyFiltersBtn = document.getElementById('applyFilters');
+            const clearFiltersBtn = document.getElementById('clearFilters');
 
             if (!showBtn) console.error("showCreate button missing!");
             if (!createForm) console.error("createForm element missing!");
             if (!cancelBtn) console.error("cancelCreate button missing!");
+
+            applyFiltersBtn.addEventListener('click', () => {
+                activeFilters.time = timeFilterEl.value;
+                activeFilters.rating = ratingFilterEl.value;
+                activeFilters.comments = commentFilterEl.value;
+                loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
+            });
+
+            clearFiltersBtn.addEventListener('click', () => {
+                timeFilterEl.value = '';
+                ratingFilterEl.value = '';
+                commentFilterEl.value = '';
+                activeFilters = { time: '', rating: '', comments: '' };
+                loadFeed();
+            });
 
             function resetForm() {
                 document.getElementById('recipeForm').reset();
@@ -172,7 +233,7 @@
         });
 
         // Load recipes from the backend and render them in the feed
-        async function loadFeed() {
+        async function loadFeed(timeFilter = '', ratingFilter = '', commentFilter = '') {
             try {
                 const token = localStorage.getItem('token');
                 const res = await fetch('http://localhost:3000/recipes/my', {
@@ -293,7 +354,7 @@
 
                 if (res.ok) {
                     alert('Comment posted!');
-                    loadFeed(); // refresh everything
+                    loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
                 } else {
                     const data = await res.json();
                     alert(data.error || 'Failed to post comment');
@@ -330,7 +391,7 @@
 
                 if (res.ok) {
                     alert('Rating saved!');
-                    loadFeed();
+                    loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
                 }
 
             } catch (err) {
@@ -386,7 +447,7 @@
                     document.getElementById('recipeForm').reset();
                     document.getElementById('createForm').style.display = 'none';
                     editingRecipeId = null;
-                    loadFeed();
+                    loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
                 } else {
                     const errorText = msg.error || msg.message || `Request failed (${res.status})`;
                     alert('Error creating recipe: ' + errorText);
