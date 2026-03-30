@@ -8,19 +8,19 @@
 
 <body>
 
-     <nav>
+    <nav>
         <div>
-        <a href="dashboard.html">Home</a>
-        <a href="recipes.html">My Recipes</a>
-        <a href="favorites.html">Favorites</a>
-        <a href="community.html">Community</a>
-    </div>
+            <a href="dashboard.html">Home</a>
+            <a href="recipes.html">My Recipes</a>
+            <a href="favorites.html">Favorites</a>
+            <a href="community.html">Community</a>
+        </div>
 
-    <div id="profile-menu">
-        <button id="profile-btn" onclick="window.location.href='profile.html'">
-            Account Settings
-        </button>
-    </div>
+        <div id="profile-menu">
+            <button id="profile-btn" onclick="window.location.href='profile.html'">
+                Account Settings
+            </button>
+        </div>
     </nav>
 
     <div class="container">
@@ -29,9 +29,10 @@
         <button id="showCreate">Create Recipe</button>
 
 
-        
+
         <div class="nav-search" style="margin-bottom: 20px;">
-            <input type="text" id="recipe-search" placeholder="Search your recipes..." onkeyup="filterRecipes()" style="width: 100%; padding: 10px;">
+            <input type="text" id="recipe-search" placeholder="Search your recipes..." onkeyup="filterRecipes()"
+                style="width: 100%; padding: 10px;">
         </div>
 
         <!-- Create Form -->
@@ -68,21 +69,21 @@
         let editingRecipeId = null;
 
 
-    //search feature for recipes - filters the displayed recipe cards based on the search input
+        //search feature for recipes - filters the displayed recipe cards based on the search input
         function filterRecipes() {
-    const input = document.getElementById('recipe-search').value.toLowerCase();
-    const cards = document.querySelectorAll('#feed .card');
+            const input = document.getElementById('recipe-search').value.toLowerCase();
+            const cards = document.querySelectorAll('#feed .card');
 
-    cards.forEach(card => {
-        const content = card.innerText.toLowerCase();
+            cards.forEach(card => {
+                const content = card.innerText.toLowerCase();
 
-        if (content.includes(input)) {
-            card.style.display = "";
-        } else {
-            card.style.display = "none";
+                if (content.includes(input)) {
+                    card.style.display = "";
+                } else {
+                    card.style.display = "none";
+                }
+            });
         }
-    });
-}
 
         document.addEventListener("DOMContentLoaded", () => {
             requireAuth();
@@ -218,6 +219,9 @@
                     inner += `<button onclick="commentRecipe(${r.id})">Comment</button> `;
                     inner += `<button onclick="rateRecipe(${r.id})">Rate</button> `;
                     inner += `<button onclick="editRecipe(${r.id})">Edit</button>`;
+                    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+                    const isFavorited = favorites.some(f => f.id === r.id);
+                    inner += `<button class="favorite-btn" onclick='favoriteRecipe(${JSON.stringify(r)})'>${isFavorited ? "❤️" : "Favorite"}</button>`;
                     card.innerHTML = inner;
                     feed.appendChild(card);
 
@@ -388,15 +392,33 @@
             }
         }
 
+        function favoriteRecipe(recipe) {
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+            const existingIndex = favorites.findIndex(f => f.id === recipe.id);
+
+            if (existingIndex !== -1) {
+                // remove if already favorited
+                favorites.splice(existingIndex, 1);
+                alert("Removed from favorites");
+            } else {
+                favorites.push(recipe);
+                alert("Added to favorites ❤️");
+            }
+
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+
+            loadFeed(); // refresh hearts
+        }
         // EDIT REDIRECT
         function editRecipe(id) {
             window.location.href = `editRecipe.html?id=${id}`;
         }
     </script>
 
-   <div class="zestify-corner-logo">
-    <img src="../uploads/Zestify.png" alt="Zestify Logo">
-</div> 
+    <div class="zestify-corner-logo">
+        <img src="../uploads/Zestify.png" alt="Zestify Logo">
+    </div>
 
 </body>
 

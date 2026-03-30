@@ -9,34 +9,91 @@
 <body>
 
     <nav>
-       <div>
-        <a href="dashboard.html">Home</a>
-        <a href="recipes.html">My Recipes</a>
-        <a href="favorites.html">Favorites</a>
-        <a href="community.html">Community</a>
-    </div>
+        <div>
+            <a href="dashboard.html">Home</a>
+            <a href="recipes.html">My Recipes</a>
+            <a href="favorites.html">Favorites</a>
+            <a href="community.html">Community</a>
+        </div>
 
-    <div id="profile-menu">
-        <button id="profile-btn" onclick="window.location.href='profile.html'">
-            Account Settings
-        </button>
-    </div>
+        <div id="profile-menu">
+            <button id="profile-btn" onclick="window.location.href='profile.html'">
+                Account Settings
+            </button>
+        </div>
     </nav>
 
     <div class="container">
-        <h1>Favorite Recipes</h1>
-        <div class="card">Favorite Recipe Example</div>
+        <h1>Favorite Recipes ❤️</h1>
+        <div id="favorites-feed"></div>
     </div>
 
-
     <script src="auth.js"></script>
+
     <script>
-        document.addEventListener("DOMContentLoaded", requireAuth);
+        document.addEventListener("DOMContentLoaded", () => {
+            requireAuth();
+            loadFavorites();
+        });
+
+        function loadFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const feed = document.getElementById('favorites-feed');
+
+            feed.innerHTML = '';
+
+            if (favorites.length === 0) {
+                feed.innerHTML = '<p>No favorite recipes yet.</p>';
+                return;
+            }
+
+            favorites.forEach(recipe => {
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                let inner = `<h3>${recipe.title}</h3>`;
+
+                if (recipe.image_url) {
+                    inner += `
+                        <img src="${recipe.image_url}" 
+                             alt="Recipe image" 
+                             style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;">
+                    `;
+                } else {
+                    inner += `<p><em>No Picture Uploaded</em></p>`;
+                }
+
+                inner += `<p>${recipe.description}</p>`;
+
+                if (recipe.estimated_time) {
+                    inner += `<p><strong>Time:</strong> ${recipe.estimated_time}</p>`;
+                }
+
+                inner += `
+                    <button onclick="removeFavorite(${recipe.id})">
+                        Remove ❤️
+                    </button>
+                `;
+
+                card.innerHTML = inner;
+                feed.appendChild(card);
+            });
+        }
+
+        function removeFavorite(id) {
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+            favorites = favorites.filter(recipe => recipe.id !== id);
+
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+
+            loadFavorites();
+        }
     </script>
-    
-<div class="zestify-corner-logo">
-    <img src="../uploads/Zestify.png" alt="Zestify Logo">
-</div>
+
+    <div class="zestify-corner-logo">
+        <img src="../uploads/Zestify.png" alt="Zestify Logo">
+    </div>
 
 </body>
 
