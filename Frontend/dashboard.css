@@ -142,8 +142,7 @@ body::before {
     margin-bottom: 40px;
     background: linear-gradient(
     rgba(0,0,0,0.15),
-    rgba(0,0,0,0.15)
-);
+    rgba(0,0,0,0.15));
 }
 
 .hero-title {
@@ -207,4 +206,4 @@ body::before {
 .recipe-card p {
     font-size: 14px;
     opacity: 0.85;
-}
+}}
