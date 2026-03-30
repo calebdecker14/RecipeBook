@@ -51,7 +51,7 @@ exports.postRating = async (req, res) => {
         await pool.query(
             `INSERT INTO ratings (recipe_id, user_id, rating)
              VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE rating = VALUES(rating), created_at = CURRENT_TIMESTAMP`,
+             ON DUPLICATE KEY UPDATE rating = VALUES(rating)`,
             [recipeId, userId, rating]
         );
 

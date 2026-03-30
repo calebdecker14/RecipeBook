@@ -30,6 +30,7 @@ async function loadRecipes() {
             <div class="recipe" id="recipe-${r.id}">
                 <h3>${r.title}</h3>
                 <p>${r.description}</p>
+                <p><strong>Average rating:</strong> ${Number(parseFloat(r.average_rating) || 0).toFixed(1)} ⭐</p>
                 ${buttons}
 
                 <div>
@@ -94,7 +95,7 @@ async function postComment(recipeId) {
 
 async function rateRecipe(recipeId, rating) {
 
-    await fetch("http://localhost:3000/ratings", {
+    const res = await fetch("http://localhost:3000/ratings", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -103,7 +104,14 @@ async function rateRecipe(recipeId, rating) {
         body: JSON.stringify({ recipeId, rating })
     });
 
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to submit rating");
+        return;
+    }
+
     alert("Rating submitted");
+    await loadRecipes();
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -45,13 +45,20 @@ exports.getRecipes = async (req, res) => {
                 r.created_at,
                 r.updated_at,
                 u.username AS author,
-                COALESCE(AVG(rt.rating), 0) AS average_rating,
-                COUNT(DISTINCT c.id) AS comment_count
+                COALESCE(ra.average_rating, 0) AS average_rating,
+                COALESCE(cc.comment_count, 0) AS comment_count
             FROM recipes r
             LEFT JOIN users u ON r.user_id = u.id
-            LEFT JOIN ratings rt ON rt.recipe_id = r.id
-            LEFT JOIN comments c ON c.recipe_id = r.id
-            GROUP BY r.id
+            LEFT JOIN (
+                SELECT recipe_id, AVG(rating) AS average_rating
+                FROM ratings
+                GROUP BY recipe_id
+            ) ra ON ra.recipe_id = r.id
+            LEFT JOIN (
+                SELECT recipe_id, COUNT(*) AS comment_count
+                FROM comments
+                GROUP BY recipe_id
+            ) cc ON cc.recipe_id = r.id
             ORDER BY r.created_at DESC
         `);
 
@@ -80,14 +87,21 @@ exports.getRecipeById = async (req, res) => {
                 r.created_at,
                 r.updated_at,
                 u.username AS author,
-                COALESCE(AVG(rt.rating), 0) AS average_rating,
-                COUNT(DISTINCT c.id) AS comment_count
+                COALESCE(ra.average_rating, 0) AS average_rating,
+                COALESCE(cc.comment_count, 0) AS comment_count
             FROM recipes r
             LEFT JOIN users u ON r.user_id = u.id
-            LEFT JOIN ratings rt ON rt.recipe_id = r.id
-            LEFT JOIN comments c ON c.recipe_id = r.id
+            LEFT JOIN (
+                SELECT recipe_id, AVG(rating) AS average_rating
+                FROM ratings
+                GROUP BY recipe_id
+            ) ra ON ra.recipe_id = r.id
+            LEFT JOIN (
+                SELECT recipe_id, COUNT(*) AS comment_count
+                FROM comments
+                GROUP BY recipe_id
+            ) cc ON cc.recipe_id = r.id
             WHERE r.id = ?
-            GROUP BY r.id
         `, [recipeId]);
 
         if (!rows.length) {
@@ -171,7 +185,6 @@ exports.getMyRecipes = async (req, res) => {
         const commentFilter = typeof req.query.comment_filter === 'string' ? req.query.comment_filter.trim() : '';
 
         const whereConditions = ['r.user_id = ?'];
-        const havingConditions = [];
         const params = [user_id];
 
         const timeInMinutesExpr = `
@@ -186,7 +199,7 @@ exports.getMyRecipes = async (req, res) => {
             if (timeFilter.endsWith('+')) {
                 const min = Number.parseInt(timeFilter, 10);
                 if (!Number.isNaN(min)) {
-                    havingConditions.push(`${timeInMinutesExpr} >= ?`);
+                    whereConditions.push(`${timeInMinutesExpr} >= ?`);
                     params.push(min);
                 }
             } else {
@@ -194,7 +207,7 @@ exports.getMyRecipes = async (req, res) => {
                 const min = Number.parseInt(minStr, 10);
                 const max = Number.parseInt(maxStr, 10);
                 if (!Number.isNaN(min) && !Number.isNaN(max)) {
-                    havingConditions.push(`${timeInMinutesExpr} BETWEEN ? AND ?`);
+                    whereConditions.push(`${timeInMinutesExpr} BETWEEN ? AND ?`);
                     params.push(min, max);
                 }
             }
@@ -205,19 +218,18 @@ exports.getMyRecipes = async (req, res) => {
             const minRating = Number.parseFloat(minRatingStr);
             const maxRating = Number.parseFloat(maxRatingStr);
             if (!Number.isNaN(minRating) && !Number.isNaN(maxRating)) {
-                havingConditions.push('COALESCE(AVG(rt.rating), 0) BETWEEN ? AND ?');
+                whereConditions.push('COALESCE(ra.average_rating, 0) BETWEEN ? AND ?');
                 params.push(minRating, maxRating);
             }
         }
 
         if (commentFilter === 'has_comments') {
-            havingConditions.push('COUNT(c.id) > 0');
+            whereConditions.push('COALESCE(cc.comment_count, 0) > 0');
         } else if (commentFilter === 'no_comments') {
-            havingConditions.push('COUNT(c.id) = 0');
+            whereConditions.push('COALESCE(cc.comment_count, 0) = 0');
         }
 
         const whereClause = `WHERE ${whereConditions.join(' AND ')}`;
-        const havingClause = havingConditions.length ? `HAVING ${havingConditions.join(' AND ')}` : '';
 
         const [rows] = await pool.query(`
             SELECT
@@ -230,15 +242,21 @@ exports.getMyRecipes = async (req, res) => {
                 r.created_at,
                 r.updated_at,
                 u.username AS author,
-                COALESCE(AVG(rt.rating), 0) AS average_rating,
-                COUNT(DISTINCT c.id) AS comment_count
+                COALESCE(ra.average_rating, 0) AS average_rating,
+                COALESCE(cc.comment_count, 0) AS comment_count
             FROM recipes r
             LEFT JOIN users u ON r.user_id = u.id
-            LEFT JOIN ratings rt ON rt.recipe_id = r.id
-            LEFT JOIN comments c ON c.recipe_id = r.id
+            LEFT JOIN (
+                SELECT recipe_id, AVG(rating) AS average_rating
+                FROM ratings
+                GROUP BY recipe_id
+            ) ra ON ra.recipe_id = r.id
+            LEFT JOIN (
+                SELECT recipe_id, COUNT(*) AS comment_count
+                FROM comments
+                GROUP BY recipe_id
+            ) cc ON cc.recipe_id = r.id
             ${whereClause}
-            GROUP BY r.id
-            ${havingClause}
             ORDER BY r.created_at DESC
         `, params);
 
