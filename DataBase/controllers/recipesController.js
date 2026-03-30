@@ -222,6 +222,7 @@ exports.getMyRecipes = async (req, res) => {
         const [rows] = await pool.query(`
             SELECT
                 r.id,
+                r.user_id,
                 r.title,
                 r.description,
                 r.estimated_time,

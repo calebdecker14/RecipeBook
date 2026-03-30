@@ -14,7 +14,7 @@ if (!recipeId) {
 // Load recipe into form
 async function loadRecipe() {
     try {
-        const res = await fetch(`/recipes/${recipeId}`, {
+        const res = await fetch(`http://localhost:3000/recipes/${recipeId}`, {
             headers: {
                 "Authorization": `Bearer ${token}`
             }
@@ -50,7 +50,7 @@ async function updateRecipe() {
     }
 
     try {
-        const res = await fetch(`/recipes/${recipeId}`, {
+        const res = await fetch(`http://localhost:3000/recipes/${recipeId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

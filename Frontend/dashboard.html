@@ -3,7 +3,8 @@
 
 <head>
     <title>Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -23,37 +24,70 @@
     </div>
 </nav>
     <div class="container">
-        <h1>Recommended Recipes</h1>
 
-        <div class="card">Recipe Example 1</div>
-        <div class="card">Recipe Example 2</div>
+        <section class="hero">
+    <h1 class="hero-title">Zestify</h1>
+    <p class="hero-slogan"> 🍋 Let's get Zesty!🍋</p>
+</section>
+
+    <h2 class="section-title">Chef's Favorites</h2>
+
+    <div id="featured-recipes" class="recipe-grid"></div>
+</div>
+
 
         <hr>
 
-        <h3>Test Authorization</h3>
-        <button onclick="testAuth()">Test Authorization</button>
-        <p id="authMessage"></p>
-    </div>
 
     <script src="auth.js"></script>
+    
+
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            requireAuth();
+
+    document.addEventListener("DOMContentLoaded", () => {
+    requireAuth();
+    loadFeaturedRecipes();
+});
+
+async function loadFeaturedRecipes() {
+    try {
+        const res = await fetch("http://localhost:3000/recipes");
+        const recipes = await res.json();
+
+        // Shuffle + take 3
+        const selected = recipes.sort(() => Math.random() - 0.5).slice(0, 3);
+
+        const container = document.getElementById("featured-recipes");
+        container.innerHTML = "";
+
+        selected.forEach(r => {
+            const card = document.createElement("div");
+            card.className = "recipe-card";
+
+            card.innerHTML = `
+                <img src="${r.image_url}" alt="Recipe Image">
+                <h3>${r.title}</h3>
+                <p>${r.description.substring(0, 80)}...</p>
+            `;
+
+            card.onclick = () => {
+                window.location.href = `recipe.html?id=${r.id}`;
+            };
+
+            container.appendChild(card);
         });
 
-        function testAuth() {
-            const token = localStorage.getItem("token");
-            const messageEl = document.getElementById("authMessage");
+    } catch (err) {
+        console.error("Error loading featured recipes:", err);
+    }
+}
+</script>
 
-            if (token) {
-                messageEl.innerText = "You are logged in! Token found.";
-                messageEl.className = "success";
-            } else {
-                messageEl.innerText = "You are not logged in. Please log in.";
-                messageEl.className = "error";
-            }
-        }
-    </script>
+
+
+<div class="zestify-corner-logo">
+    <img src="../uploads/Zestify.png" alt="Zestify Logo">
+</div>
 
 </body>
 

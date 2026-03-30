@@ -38,7 +38,7 @@
 
         async function loadFeed() {
             try {
-                const res = await fetch('/recipes');
+                const res = await fetch('http://localhost:3000/recipes');
                 const recipes = await res.json();
                 const feed = document.getElementById('feed');
                 feed.innerHTML = '';
@@ -117,7 +117,7 @@
             }
 
             try {
-                const res = await fetch(`/recipes/${id}/comments`, {
+                const res = await fetch(`http://localhost:3000/recipes/${id}/comments`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -155,7 +155,7 @@
             }
 
             try {
-                const res = await fetch(`/recipes/${id}/ratings`, {
+                const res = await fetch(`http://localhost:3000/recipes/${id}/ratings`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -176,6 +176,9 @@
             }
         }
     </script>
+<div class="zestify-corner-logo">
+    <img src="../uploads/Zestify.png" alt="Zestify Logo">
+</div>
 
 </body>
 

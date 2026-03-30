@@ -48,14 +48,17 @@ app.use('/profile', profileRoutes);
 // Recipes routes
 const recipeRoutes = require('./DataBase/routes/recipes');
 app.use('/recipes', recipeRoutes);
+app.use('/api/recipes', recipeRoutes); // alias for API-style calls
 
 // Comments routesS
 const commentRoutes = require('./DataBase/routes/comments');
 app.use('/comments', commentRoutes);
+app.use('/api/comments', commentRoutes);
 
 // Ratings routes
 const ratingRoutes = require('./DataBase/routes/ratings');
 app.use('/ratings', ratingRoutes);
+app.use('/api/ratings', ratingRoutes);
 
 // Start server
 const PORT = 3000;

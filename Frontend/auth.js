@@ -67,7 +67,7 @@ if (getEl('login-form') && getEl('signup-form')) {
         const password = getEl('login-pass')?.value || '';
 
         try {
-            const res = await fetch('/auth/login', {
+            const res = await fetch('http://localhost:3000/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -103,7 +103,7 @@ if (getEl('login-form') && getEl('signup-form')) {
         }
 
         try {
-            const res = await fetch('/auth/register', {
+            const res = await fetch('http://localhost:3000/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password })
@@ -131,7 +131,7 @@ const messageBox = document.getElementById('message-box');
 const token = localStorage.getItem("token");
 
 if (token) {
-  fetch('/profile/me', {
+  fetch('http://localhost:3000/profile/me', {
     headers: { Authorization: `Bearer ${token}` }
   })
     .then(res => res.json())
@@ -145,74 +145,94 @@ if (token) {
 
 
 // switch between signup and login viewpoint
-document.getElementById('show-signup').onclick = (e) => {
-    e.preventDefault(); // Stop page jump
-    loginContainer.classList.add('hidden');
-    signupContainer.classList.remove('hidden');
-    messageBox.innerText = "";
-};
+const showSignup = document.getElementById('show-signup');
+const showLogin = document.getElementById('show-login');
 
-document.getElementById('show-login').onclick = (e) => {
-    e.preventDefault();
-    signupContainer.classList.add('hidden');
-    loginContainer.classList.remove('hidden');
-    messageBox.innerText = "";
-};
+if (showSignup) {
+    showSignup.onclick = (e) => {
+        e.preventDefault(); // Stop page jump
+        if (loginContainer) loginContainer.classList.add('hidden');
+        if (signupContainer) signupContainer.classList.remove('hidden');
+        if (messageBox) messageBox.innerText = "";
+    };
+}
+
+if (showLogin) {
+    showLogin.onclick = (e) => {
+        e.preventDefault();
+        if (signupContainer) signupContainer.classList.add('hidden');
+        if (loginContainer) loginContainer.classList.remove('hidden');
+        if (messageBox) messageBox.innerText = "";
+    };
+}
 
 // login logic with JWT handling
-document.getElementById('login-form').onsubmit = async (e) => {
-    e.preventDefault();
-    
-    // Trim email to prevent accidental space errors
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-pass').value;
+const loginForm = document.getElementById('login-form');
+if (loginForm) {
+    loginForm.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        // Trim email to prevent accidental space errors
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-pass').value;
 
-    try {
-        const res = await fetch('/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
+        try {
+            const res = await fetch('http://localhost:3000/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
 
-        const json = await res.json();
-    // if logins successful, direct to dashboard. if fail, show error
-        if (res.ok) {
-            localStorage.setItem('token', json.token);
-            messageBox.className = "success";
-            messageBox.innerText = "Login successful! Redirecting...";
-            
-            // Redirect after 1 second
-            setTimeout(() => { 
-                window.location.href = 'dashboard.html'; 
-            }, 1000);
-        } else {
-            messageBox.className = "error";
-            messageBox.innerText = json.error || json.message || "Invalid credentials.";
+            const json = await res.json();
+        // if logins successful, direct to dashboard. if fail, show error
+            if (res.ok) {
+                localStorage.setItem('token', json.token);
+                if (messageBox) {
+                    messageBox.className = "success";
+                    messageBox.innerText = "Login successful! Redirecting...";
+                }
+                
+                // Redirect after 1 second
+                setTimeout(() => { 
+                    window.location.href = 'dashboard.html'; 
+                }, 1000);
+            } else {
+                if (messageBox) {
+                    messageBox.className = "error";
+                    messageBox.innerText = json.error || json.message || "Invalid credentials.";
+                }
+            }
+        } catch (err) {
+            console.error("Login Error:", err); // Human touch: logging the error
+            if (messageBox) {
+                messageBox.className = "error";
+                messageBox.innerText = "Server connection failed.";
+            }
         }
-    } catch (err) {
-        console.error("Login Error:", err); // Human touch: logging the error
-        messageBox.className = "error";
-        messageBox.innerText = "Server connection failed.";
-    }
-};
+    };
+}
 
 // account creation
-document.getElementById('signup-form').onsubmit = async (e) => {
-    e.preventDefault();
-    
-    const username = document.getElementById('signup-user').value.trim();
-    const email = document.getElementById('signup-email').value.trim();
-    const password = document.getElementById('signup-pass').value;
+const signupForm = document.getElementById('signup-form');
+if (signupForm) {
+    signupForm.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('signup-user').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-pass').value;
 
-    // Quick length check before hitting the server
-    if (password.length < 6) {
-        messageBox.className = "error";
-        messageBox.innerText = "Password must be at least 6 characters.";
-        return;
-    }
+        // Quick length check before hitting the server
+        if (password.length < 6) {
+            if (messageBox) {
+                messageBox.className = "error";
+                messageBox.innerText = "Password must be at least 6 characters.";
+            }
+            return;
+        }
 
     try {
-        const res = await fetch('/auth/register', {
+        const res = await fetch('http://localhost:3000/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, email, password })
@@ -221,20 +241,29 @@ document.getElementById('signup-form').onsubmit = async (e) => {
         const result = await res.json();
 
         if (res.ok) {
-            messageBox.className = "success";
-            messageBox.innerText = "Account created! You can now login.";
+            if (messageBox) {
+                messageBox.className = "success";
+                messageBox.innerText = "Account created! You can now login.";
+            }
             
             // switch to login view
             setTimeout(() => {
-                document.getElementById('show-login').click(); 
+                const showLoginBtn = document.getElementById('show-login');
+                if (showLoginBtn) showLoginBtn.click(); 
             }, 1500);
         } else {
-            messageBox.className = "error";
-            messageBox.innerText = result.error || result.message || "Registration failed.";
+            if (messageBox) {
+                messageBox.className = "error";
+                messageBox.innerText = result.error || result.message || "Registration failed.";
+            }
         }
     } catch (err) {
         console.error("Signup Error:", err);
-        messageBox.className = "error";
-        messageBox.innerText = "Server connection failed.";
+        if (messageBox) {
+            messageBox.className = "error";
+            messageBox.innerText = "Server connection failed.";
+        }
     }
 };
+}
+
