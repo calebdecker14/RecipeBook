@@ -46,7 +46,7 @@ exports.getRecipes = async (req, res) => {
                 r.updated_at,
                 u.username AS author,
                 COALESCE(AVG(rt.rating), 0) AS average_rating,
-                COUNT(c.id) AS comment_count
+                COUNT(DISTINCT c.id) AS comment_count
             FROM recipes r
             LEFT JOIN users u ON r.user_id = u.id
             LEFT JOIN ratings rt ON rt.recipe_id = r.id
@@ -81,7 +81,7 @@ exports.getRecipeById = async (req, res) => {
                 r.updated_at,
                 u.username AS author,
                 COALESCE(AVG(rt.rating), 0) AS average_rating,
-                COUNT(c.id) AS comment_count
+                COUNT(DISTINCT c.id) AS comment_count
             FROM recipes r
             LEFT JOIN users u ON r.user_id = u.id
             LEFT JOIN ratings rt ON rt.recipe_id = r.id
@@ -123,7 +123,7 @@ exports.updateRecipe = async (req, res) => {
 
         let sql = `
             UPDATE recipes
-            SET title = ?, description = ?, estimated_time = ?
+            SET title = ?, description = ?, estimated_time = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         `;
         let params = [
@@ -136,7 +136,7 @@ exports.updateRecipe = async (req, res) => {
         if (image_url !== undefined) {
             sql = `
                 UPDATE recipes
-                SET title = ?, description = ?, estimated_time = ?, image_url = ?
+                SET title = ?, description = ?, estimated_time = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             `;
             params = [
@@ -231,7 +231,7 @@ exports.getMyRecipes = async (req, res) => {
                 r.updated_at,
                 u.username AS author,
                 COALESCE(AVG(rt.rating), 0) AS average_rating,
-                COUNT(c.id) AS comment_count
+                COUNT(DISTINCT c.id) AS comment_count
             FROM recipes r
             LEFT JOIN users u ON r.user_id = u.id
             LEFT JOIN ratings rt ON rt.recipe_id = r.id

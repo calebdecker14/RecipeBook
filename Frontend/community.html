@@ -14,6 +14,7 @@
         <a href="recipes.html">My Recipes</a>
         <a href="favorites.html">Favorites</a>
         <a href="community.html">Community</a>
+        <a href="aboutus.html">About Us</a>
     </div>
 
     <div id="profile-menu">
@@ -26,8 +27,16 @@
     <div class="container">
         <h1>Community Feed</h1>
         <div id="feed"></div>
-    </div>
 
+        <div id="commentModal" class="modal-overlay hidden" aria-hidden="true">
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeCommentModal()">×</button>
+                <h3 id="commentModalTitle">Comments</h3>
+                <div id="commentList" class="comment-list"></div>
+                <textarea id="commentInput" placeholder="Write your comment..." maxlength="500"></textarea>
+                <button id="commentSubmitButton" onclick="submitComment()">Post Comment</button>
+            </div>
+        </div>
 
     <script src="auth.js"></script>
     <script>
@@ -46,6 +55,7 @@
                 recipes.forEach(r => {
                     const card = document.createElement('div');
                     card.className = 'card';
+                    card.dataset.recipeId = r.id;
                     let inner = `<h3>${r.title}</h3>`;
 
                     const imageUrl = r.image_url;
@@ -63,11 +73,20 @@
                     if (r.updated_at && new Date(r.updated_at).getTime() !== new Date(r.created_at).getTime()) {
                         inner += `<p><strong>Updated:</strong> ${formatTimeAgo(r.updated_at)}</p>`;
                     }
-                    inner += `<p><strong>Rating:</strong> ${Number(r.average_rating).toFixed(1)} ⭐</p>`;
-                    inner += `<p><strong>Comments:</strong> ${r.comment_count}</p>`;
-                    inner += `<button onclick="commentRecipe(${r.id})">Comment</button> `;
-                    inner += `<button onclick="rateRecipe(${r.id})">Rate</button>`;
+                    inner += `<p><strong>Rating:</strong> ${Number(parseFloat(r.average_rating) || 0).toFixed(1)} ⭐</p>`;
+                    inner += `<p><strong>Comments:</strong> <span class="comment-count">${r.comment_count}</span></p>`;
                     card.innerHTML = inner;
+
+                    const commentBtn = document.createElement('button');
+                    commentBtn.textContent = 'Comment';
+                    commentBtn.addEventListener('click', () => showCommentModal(r.id, r.title));
+                    card.appendChild(commentBtn);
+
+                    const rateBtn = document.createElement('button');
+                    rateBtn.textContent = 'Rate';
+                    rateBtn.addEventListener('click', () => rateRecipe(r.id));
+                    card.appendChild(rateBtn);
+
                     feed.appendChild(card);
                 });
             } catch (err) {
@@ -81,18 +100,11 @@
             const date = new Date(value);
             if (Number.isNaN(date.getTime())) return '';
 
-            // Compute MST time (UTC-7) to keep relative times consistent regardless of the user's local timezone
-            const msOffset = 7 * 60 * 60 * 1000; // 7 hours
-            const nowMst = Date.now() - msOffset;
-            const dateMst = date.getTime() - msOffset;
+            const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
 
-            const seconds = Math.floor((nowMst - dateMst) / 1000);
-
-            if (seconds < 60) {
-                return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
+            if (minutes <= 0) {
+                return '0 minutes ago';
             }
-
-            const minutes = Math.floor(seconds / 60);
             if (minutes < 60) {
                 return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
             }
@@ -106,36 +118,106 @@
             return `${days} day${days !== 1 ? 's' : ''} ago`;
         }
 
-        async function commentRecipe(id) {
-            const text = prompt('Enter your comment:');
-            if (!text || !text.trim()) return;
+        let activeCommentRecipeId = null;
 
+        async function showCommentModal(id, recipeTitle) {
             const token = localStorage.getItem('token');
             if (!token) {
                 alert('You must be logged in to comment.');
                 return;
             }
 
+            activeCommentRecipeId = id;
+            const modal = document.getElementById('commentModal');
+            const title = document.getElementById('commentModalTitle');
+            const list = document.getElementById('commentList');
+            const input = document.getElementById('commentInput');
+
+            title.textContent = `Comments for: ${recipeTitle}`;
+            list.innerHTML = '<p>Loading comments...</p>';
+            input.value = '';
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+
             try {
                 const res = await fetch(`http://localhost:3000/recipes/${id}/comments`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) {
+                    list.innerHTML = `<p>Error loading comments (${res.status})</p>`;
+                    return;
+                }
+
+                const comments = await res.json();
+                if (!comments.length) {
+                    list.innerHTML = '<p>No comments yet. Be the first.</p>';
+                    updateCommentCounter(id, 0);
+                    return;
+                }
+
+                list.innerHTML = comments.map(c => {
+                    const when = formatTimeAgo(c.created_at);
+                    const author = c.author || 'Anonymous';
+                    return `<div class="comment-item"><strong>${author}</strong> <em>${when}</em><p>${c.comment_text}</p></div>`;
+                }).join('');
+
+                updateCommentCounter(id, comments.length);
+
+            } catch (err) {
+                console.error('Failed to load comments', err);
+                list.innerHTML = '<p>Failed to load comments.</p>';
+            }
+        }
+
+        function updateCommentCounter(recipeId, count) {
+            const card = document.querySelector(`.card[data-recipe-id="${recipeId}"]`);
+            if (!card) return;
+            const counter = card.querySelector('.comment-count');
+            if (counter) counter.textContent = count;
+        }
+
+        async function submitComment() {
+            const commentInput = document.getElementById('commentInput');
+            const comment = commentInput.value.trim();
+            if (!comment) {
+                alert('Please write a comment first.');
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in to post comments.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`http://localhost:3000/recipes/${activeCommentRecipeId}/comments`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: JSON.stringify({ comment_text: text.trim() })
+                    body: JSON.stringify({ comment_text: comment })
                 });
-                const data = await res.json();
-                if (res.ok) {
-                    alert('Comment posted!');
-                    loadFeed();
-                } else {
-                    alert(data.error || 'Failed to post comment');
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.error || 'Failed to post comment');
+                    return;
                 }
+
+                commentInput.value = '';
+                await showCommentModal(activeCommentRecipeId);
             } catch (err) {
-                console.error('Post comment error', err);
-                alert('Failed to post comment');
+                console.error('Failed to submit comment', err);
+                alert('Failed to submit comment');
             }
+        }
+
+        function closeCommentModal() {
+            const modal = document.getElementById('commentModal');
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
         }
 
         async function rateRecipe(id) {
@@ -176,8 +258,8 @@
             }
         }
     </script>
-<div class="zestify-corner-logo">
-    <img src="../uploads/Zestify.png" alt="Zestify Logo">
+<div class="zestify-corner-logo" style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; opacity: 0.95; pointer-events: none;">
+    <img src="/uploads/Zestify.png" alt="Zestify Logo" style="pointer-events: auto;">
 </div>
 
 </body>
