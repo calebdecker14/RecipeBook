@@ -61,6 +61,12 @@
 
     <script>
 
+function resolveImageUrl(imageUrl) {
+    if (!imageUrl) return '';
+    if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
+    return `http://localhost:3000${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
+}
+
     document.addEventListener("DOMContentLoaded", () => {
     requireAuth();
     loadDashboardAnalytics();
@@ -111,7 +117,7 @@ async function loadFeaturedRecipes() {
             card.className = "recipe-card";
 
             card.innerHTML = `
-                <img src="${r.image_url}" alt="Recipe Image">
+                <img src="${resolveImageUrl(r.image_url)}" alt="Recipe Image">
                 <h3>${r.title}</h3>
                 <p>${r.description.substring(0, 80)}...</p>
             `;

@@ -32,6 +32,12 @@
     <script src="auth.js"></script>
 
     <script>
+        function resolveImageUrl(imageUrl) {
+            if (!imageUrl) return '';
+            if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
+            return `http://localhost:3000${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             requireAuth();
             loadFavorites();
@@ -56,7 +62,7 @@
 
                 if (recipe.image_url) {
                     inner += `
-                        <img src="${recipe.image_url}" 
+                        <img src="${resolveImageUrl(recipe.image_url)}" 
                              alt="Recipe image" 
                              style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;">
                     `;
