@@ -120,6 +120,13 @@
         let editingRecipeId = null;
         let activeFilters = { time: '', rating: '', comments: '' };
         const RECIPES_UPDATED_KEY = 'recipes_last_updated';
+        const API_BASE_URL = 'http://localhost:3000';
+
+        function resolveImageUrl(imageUrl) {
+            if (!imageUrl) return '';
+            if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
+            return `${API_BASE_URL}${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
+        }
 
         function notifyRecipesUpdated() {
             localStorage.setItem(RECIPES_UPDATED_KEY, Date.now().toString());
@@ -256,7 +263,7 @@
                     document.getElementById('image').value = '';
 
                     if (data.image_url) {
-                        imagePreview.innerHTML = `<div><strong>Current Photo:</strong><br><img src="${data.image_url}" alt="Current recipe photo" style="max-width:200px; max-height:200px; display:block; margin-top:5px;" /></div>`;
+                        imagePreview.innerHTML = `<div><strong>Current Photo:</strong><br><img src="${resolveImageUrl(data.image_url)}" alt="Current recipe photo" style="max-width:200px; max-height:200px; display:block; margin-top:5px;" /></div>`;
                     } else {
                         imagePreview.innerHTML = '<p><em>No Picture Uploaded</em></p>';
                     }
@@ -297,7 +304,7 @@
 
                     let inner = `<h3>${r.title}</h3>`;
 
-                    const imageUrl = r.image_url;
+                    const imageUrl = resolveImageUrl(r.image_url);
 
                     if (imageUrl) {
                         inner += `<img src="${imageUrl}" alt="Recipe image" style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;" />`;
@@ -535,6 +542,7 @@
 
             const url = editingRecipeId ? `http://localhost:3000/recipes/${editingRecipeId}` : 'http://localhost:3000/recipes';
             const method = editingRecipeId ? 'PUT' : 'POST';
+            const successMessage = editingRecipeId ? 'Recipe updated successfully!' : 'Recipe created successfully';
 
             try {
                 const res = await fetch(url, {
@@ -555,7 +563,7 @@
                 }
 
                 if (res.ok) {
-                    alert('Recipe created successfully');
+                    alert(successMessage);
                     document.getElementById('recipeForm').reset();
                     document.getElementById('createForm').style.display = 'none';
                     editingRecipeId = null;

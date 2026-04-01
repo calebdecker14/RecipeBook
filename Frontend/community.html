@@ -44,6 +44,13 @@
     <script src="auth.js"></script>
     <script>
         const RECIPES_UPDATED_KEY = 'recipes_last_updated';
+        const API_BASE_URL = 'http://localhost:3000';
+
+        function resolveImageUrl(imageUrl) {
+            if (!imageUrl) return '';
+            if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
+            return `${API_BASE_URL}${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
+        }
 
         function notifyRecipesUpdated() {
             localStorage.setItem(RECIPES_UPDATED_KEY, Date.now().toString());
@@ -99,7 +106,7 @@
                     card.dataset.recipeId = r.id;
                     let inner = `<h3>${r.title}</h3>`;
 
-                    const imageUrl = r.image_url;
+                    const imageUrl = resolveImageUrl(r.image_url);
 
                     if (imageUrl) {
                         inner += `<img src="${imageUrl}" alt="Recipe image" style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;" />`;
