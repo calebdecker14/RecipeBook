@@ -89,9 +89,30 @@
             requireAuth();
             setupLiveRecipeRefresh();
             loadFeed();
+
+            const timeFilterEl = document.getElementById('timeFilter');
+            const ratingFilterEl = document.getElementById('ratingFilter');
+            const commentFilterEl = document.getElementById('commentFilter');
+            const applyFiltersBtn = document.getElementById('applyFilters');
+            const clearFiltersBtn = document.getElementById('clearFilters');
+
+            applyFiltersBtn.addEventListener('click', () => {
+                activeFilters.time = timeFilterEl.value;
+                activeFilters.rating = ratingFilterEl.value;
+                activeFilters.comments = commentFilterEl.value;
+                loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
+            });
+
+            clearFiltersBtn.addEventListener('click', () => {
+                timeFilterEl.value = '';
+                ratingFilterEl.value = '';
+                commentFilterEl.value = '';
+                activeFilters = { time: '', rating: '', comments: '' };
+                loadFeed();
+            });
         });
 
-        async function loadFeed() {
+        async function loadFeed(timeFilter = '', ratingFilter = '', commentFilter = '') {
             try {
                 const res = await fetch(`http://localhost:3000/recipes?_=${Date.now()}`, {
                     cache: 'no-store'
