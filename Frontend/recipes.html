@@ -101,7 +101,7 @@
             <p id="formMessage"></p>
         </div>
 
-        <div id="feed"></div>
+        <div id="feed" class="recipes-feed"></div>
 
         <div id="commentModal" class="modal-overlay hidden" aria-hidden="true">
             <div class="modal-content">
@@ -118,6 +118,30 @@
 
     <script>
         let editingRecipeId = null;
+        let activeFilters = { time: '', rating: '', comments: '' };
+        const RECIPES_UPDATED_KEY = 'recipes_last_updated';
+
+        function notifyRecipesUpdated() {
+            localStorage.setItem(RECIPES_UPDATED_KEY, Date.now().toString());
+        }
+
+        function refreshRecipesFeed() {
+            loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
+        }
+
+        function setupLiveRecipeRefresh() {
+            window.addEventListener('storage', (event) => {
+                if (event.key === RECIPES_UPDATED_KEY) {
+                    refreshRecipesFeed();
+                }
+            });
+
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) {
+                    refreshRecipesFeed();
+                }
+            });
+        }
 
 
         //search feature for recipes - filters the displayed recipe cards based on the search input
@@ -138,7 +162,8 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             requireAuth();
-            loadFeed();
+            setupLiveRecipeRefresh();
+            refreshRecipesFeed();
 
             const showBtn = document.getElementById('showCreate');
             const createForm = document.getElementById('createForm');
@@ -246,7 +271,8 @@
         async function loadFeed(timeFilter = '', ratingFilter = '', commentFilter = '') {
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch('http://localhost:3000/recipes/my', {
+                const res = await fetch(`http://localhost:3000/recipes/my?_=${Date.now()}`, {
+                    cache: 'no-store',
                     headers: token ? { 'Authorization': 'Bearer ' + token } : {}
                 });
                 const recipes = await res.json();
@@ -476,7 +502,8 @@
 
                 if (res.ok) {
                     alert('Rating saved!');
-                    loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
+                    notifyRecipesUpdated();
+                    refreshRecipesFeed();
                 }
 
             } catch (err) {
@@ -532,7 +559,8 @@
                     document.getElementById('recipeForm').reset();
                     document.getElementById('createForm').style.display = 'none';
                     editingRecipeId = null;
-                    loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
+                    notifyRecipesUpdated();
+                    refreshRecipesFeed();
                 } else {
                     const errorText = msg.error || msg.message || `Request failed (${res.status})`;
                     alert('Error creating recipe: ' + errorText);

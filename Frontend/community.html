@@ -26,7 +26,10 @@
 
     <div class="container">
         <h1>Community Feed</h1>
-        <div id="feed"></div>
+        <div class="nav-search">
+    <input type="text" id="recipe-search" placeholder="Search community recipes..." onkeyup="filterFeed()">
+        </div>
+        <div id="feed" class="community-feed"></div>
 
         <div id="commentModal" class="modal-overlay hidden" aria-hidden="true">
             <div class="modal-content">
@@ -40,14 +43,52 @@
 
     <script src="auth.js"></script>
     <script>
+        const RECIPES_UPDATED_KEY = 'recipes_last_updated';
+
+        function notifyRecipesUpdated() {
+            localStorage.setItem(RECIPES_UPDATED_KEY, Date.now().toString());
+        }
+
+        function setupLiveRecipeRefresh() {
+            window.addEventListener('storage', (event) => {
+                if (event.key === RECIPES_UPDATED_KEY) {
+                    loadFeed();
+                }
+            });
+
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) {
+                    loadFeed();
+                }
+            });
+        }
+
+        function filterFeed() {
+            const input = document.getElementById('recipe-search').value.toLowerCase();
+            const cards = document.querySelectorAll('#feed .card');
+
+            cards.forEach(card => {
+                const content = card.innerText.toLowerCase();
+
+                if (content.includes(input)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             requireAuth();
+            setupLiveRecipeRefresh();
             loadFeed();
         });
 
         async function loadFeed() {
             try {
-                const res = await fetch('http://localhost:3000/recipes');
+                const res = await fetch(`http://localhost:3000/recipes?_=${Date.now()}`, {
+                    cache: 'no-store'
+                });
                 const recipes = await res.json();
                 const feed = document.getElementById('feed');
                 feed.innerHTML = '';
@@ -87,8 +128,19 @@
                     rateBtn.addEventListener('click', () => rateRecipe(r.id));
                     card.appendChild(rateBtn);
 
+                    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+                    const isFavorited = favorites.some(f => f.id === r.id);
+
+                    const favBtn = document.createElement('button');
+                    favBtn.className = 'favorite-heart';
+                    favBtn.textContent = isFavorited ? '❤️' : '🤍';
+                    favBtn.addEventListener('click', () => favoriteRecipe(r));
+                    card.appendChild(favBtn);
+
                     feed.appendChild(card);
                 });
+
+                filterFeed();
             } catch (err) {
                 console.error('Load feed error', err);
             }
@@ -156,9 +208,9 @@
                 }
 
                 list.innerHTML = comments.map(c => {
-                    const when = formatTimeAgo(c.created_at);
+                    const when = formatTimeAgo(c.created_at || c.createdAt || c.createdAt);
                     const author = c.author || 'Anonymous';
-                    return `<div class="comment-item"><strong>${author}</strong> <em>${when}</em><p>${c.comment_text}</p></div>`;
+                    return `<div class="comment-item"><strong>${author}</strong> <em>${when}</em><p>${c.comment_text || c.comment}</p></div>`;
                 }).join('');
 
                 updateCommentCounter(id, comments.length);
@@ -248,6 +300,7 @@
                 const data = await res.json();
                 if (res.ok) {
                     alert('Rating saved!');
+                    notifyRecipesUpdated();
                     loadFeed();
                 } else {
                     alert(data.error || 'Failed to save rating');
@@ -256,6 +309,23 @@
                 console.error('Save rating error', err);
                 alert('Failed to save rating');
             }
+        }
+
+        function favoriteRecipe(recipe) {
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+            const existingIndex = favorites.findIndex(f => f.id === recipe.id);
+
+            if (existingIndex !== -1) {
+                favorites.splice(existingIndex, 1);
+                alert("Removed from favorites");
+            } else {
+                favorites.push(recipe);
+                alert("Added to favorites ❤️");
+            }
+
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            loadFeed();
         }
     </script>
 <div class="zestify-corner-logo" style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; opacity: 0.95; pointer-events: none;">

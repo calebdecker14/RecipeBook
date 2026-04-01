@@ -63,6 +63,7 @@ async function updateRecipe() {
 
         if (res.ok) {
             alert("Recipe updated successfully!");
+            localStorage.setItem('recipes_last_updated', Date.now().toString());
             window.location.href = "recipes.html";
         } else {
             alert(data.error || "Failed to update recipe.");
