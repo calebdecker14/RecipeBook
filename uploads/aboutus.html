@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zestify | About Us</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <nav>
+        <div class="nav-links">
+            <a href="dashboard.html">Home</a>
+            <a href="recipes.html">My Recipes</a>
+            <a href="favorites.html">Favorites</a>
+            <a href="community.html">Community</a>
+            <a href="aboutus.html" class="active">About Us</a>
+        </div>
+
+        <div class="nav-right">
+            <span class="brand-name">Zestify</span>
+            <div id="profile-menu">
+                <button id="profile-btn" onclick="window.location.href='profile.html'">Account Settings</button>
+                <button id="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Meet the Zestify Team</h1>
+        
+        <div id="feed"> 
+            
+            <div class="card">
+                <img src="uploads/christian.png" alt="Christian Silva" class="team-photo">
+                <h3>Christian Silva</h3>
+                <p>Developer</p>
+            </div>
+
+            <div class="card">
+                <img src="uploads/michael.png" alt="Michael Rogers" class="team-photo">
+                <h3>Michael Rogers</h3>
+                <p>Developer</p>
+            </div>
+
+            <div class="card">
+                <img src="uploads/malia.png" alt="Malia Nishimoto" class="team-photo">
+                <h3>Malia Nishimoto</h3>
+                <p>Product Owner</p>
+            </div>
+
+            <div class="card">
+                <img src="uploads/amir.png" alt="Amir Ortiz" class="team-photo">
+                <h3>Amir Ortiz</h3>
+                <p>Scrum Master</p>
+            </div>
+
+            <div class="card">
+                <img src="uploads/noah.png" alt="Noah Sisneros" class="team-photo">
+                <h3>Noah Sisneros</h3>
+                <p>Developer</p>
+            </div>
+
+            <div class="card">
+                <img src="uploads/caleb.png" alt="Caleb Decker" class="team-photo">
+                <h3>Caleb Decker</h3>
+                <p>Developer</p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="zestify-corner-logo">
+        <img src="uploads/Zestify.png" alt="Zestify Logo">
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Ensure security check runs on page load
+            if (typeof requireAuth === "function") requireAuth();
+        });
+    </script>
+
+</body>
+</html>
