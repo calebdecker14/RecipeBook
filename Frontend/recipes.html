@@ -14,6 +14,7 @@
             <a href="recipes.html">My Recipes</a>
             <a href="favorites.html">Favorites</a>
             <a href="community.html">Community</a>
+            <a href="aboutus.html">About Us</a>
         </div>
 
         <div id="profile-menu">
@@ -100,14 +101,54 @@
             <p id="formMessage"></p>
         </div>
 
-        <div id="feed"></div>
+        <div id="feed" class="recipes-feed"></div>
+
+        <div id="commentModal" class="modal-overlay hidden" aria-hidden="true">
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeCommentModal()">×</button>
+                <h3 id="commentModalTitle">Comments</h3>
+                <div id="commentList" class="comment-list"></div>
+                <textarea id="commentInput" placeholder="Write your comment..." maxlength="500"></textarea>
+                <button id="commentSubmitButton" onclick="submitComment()">Post Comment</button>
+            </div>
+        </div>
 
     </div>
-
     <script src="auth.js"></script>
 
     <script>
         let editingRecipeId = null;
+        let activeFilters = { time: '', rating: '', comments: '' };
+        const RECIPES_UPDATED_KEY = 'recipes_last_updated';
+        const API_BASE_URL = 'http://localhost:3000';
+
+        function resolveImageUrl(imageUrl) {
+            if (!imageUrl) return '';
+            if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
+            return `${API_BASE_URL}${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
+        }
+
+        function notifyRecipesUpdated() {
+            localStorage.setItem(RECIPES_UPDATED_KEY, Date.now().toString());
+        }
+
+        function refreshRecipesFeed() {
+            loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
+        }
+
+        function setupLiveRecipeRefresh() {
+            window.addEventListener('storage', (event) => {
+                if (event.key === RECIPES_UPDATED_KEY) {
+                    refreshRecipesFeed();
+                }
+            });
+
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) {
+                    refreshRecipesFeed();
+                }
+            });
+        }
 
 
         //search feature for recipes - filters the displayed recipe cards based on the search input
@@ -128,7 +169,8 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             requireAuth();
-            loadFeed();
+            setupLiveRecipeRefresh();
+            refreshRecipesFeed();
 
             const showBtn = document.getElementById('showCreate');
             const createForm = document.getElementById('createForm');
@@ -221,7 +263,7 @@
                     document.getElementById('image').value = '';
 
                     if (data.image_url) {
-                        imagePreview.innerHTML = `<div><strong>Current Photo:</strong><br><img src="${data.image_url}" alt="Current recipe photo" style="max-width:200px; max-height:200px; display:block; margin-top:5px;" /></div>`;
+                        imagePreview.innerHTML = `<div><strong>Current Photo:</strong><br><img src="${resolveImageUrl(data.image_url)}" alt="Current recipe photo" style="max-width:200px; max-height:200px; display:block; margin-top:5px;" /></div>`;
                     } else {
                         imagePreview.innerHTML = '<p><em>No Picture Uploaded</em></p>';
                     }
@@ -236,7 +278,8 @@
         async function loadFeed(timeFilter = '', ratingFilter = '', commentFilter = '') {
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch('http://localhost:3000/recipes/my', {
+                const res = await fetch(`http://localhost:3000/recipes/my?_=${Date.now()}`, {
+                    cache: 'no-store',
                     headers: token ? { 'Authorization': 'Bearer ' + token } : {}
                 });
                 const recipes = await res.json();
@@ -257,10 +300,11 @@
                 recipes.forEach(r => {
                     const card = document.createElement('div');
                     card.className = 'card';
+                    card.dataset.recipeId = r.id;
 
                     let inner = `<h3>${r.title}</h3>`;
 
-                    const imageUrl = r.image_url;
+                    const imageUrl = resolveImageUrl(r.image_url);
 
                     if (imageUrl) {
                         inner += `<img src="${imageUrl}" alt="Recipe image" style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;" />`;
@@ -275,21 +319,34 @@
                     if (r.updated_at && new Date(r.updated_at).getTime() !== new Date(r.created_at).getTime()) {
                         inner += `<p><strong>Updated:</strong> ${formatTimeAgo(r.updated_at)}</p>`;
                     }
-                    inner += `<p><strong>Rating:</strong> ${Number(r.average_rating).toFixed(1)} ⭐</p>`;
-                    inner += `<p><strong>Comments:</strong> ${r.comment_count}</p>`;
-                    inner += `<button onclick="commentRecipe(${r.id})">Comment</button> `;
-                    inner += `<button onclick="rateRecipe(${r.id})">Rate</button> `;
-                    inner += `<button onclick="editRecipe(${r.id})">Edit</button>`;
+                    inner += `<p><strong>Rating:</strong> ${Number(parseFloat(r.average_rating) || 0).toFixed(1)} ⭐</p>`;
+                    inner += `<p><strong>Comments:</strong> <span class="comment-count">${r.comment_count}</span></p>`;
+                    card.innerHTML = inner;
+
+                    const commentBtn = document.createElement('button');
+                    commentBtn.textContent = 'Comment';
+                    commentBtn.addEventListener('click', () => showCommentModal(r.id, r.title));
+                    card.appendChild(commentBtn);
+
+                    const rateBtn = document.createElement('button');
+                    rateBtn.textContent = 'Rate';
+                    rateBtn.addEventListener('click', () => rateRecipe(r.id));
+                    card.appendChild(rateBtn);
+
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.addEventListener('click', () => editRecipe(r.id));
+                    card.appendChild(editBtn);
 
                     const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
                     const isFavorited = favorites.some(f => f.id === r.id);
 
-                    inner += `
-                        <button class="favorite-heart" onclick='favoriteRecipe(${JSON.stringify(r)})'>
-                            ${isFavorited ? "❤️" : "🤍"}
-                        </button>
-                    `;
-                    card.innerHTML = inner;
+                    const favBtn = document.createElement('button');
+                    favBtn.className = 'favorite-heart';
+                    favBtn.textContent = isFavorited ? '❤️' : '🤍';
+                    favBtn.addEventListener('click', () => favoriteRecipe(r));
+                    card.appendChild(favBtn);
+
                     feed.appendChild(card);
 
                     // Comments are not loaded on this page - users can click Comment to go to community
@@ -306,18 +363,11 @@
             const date = new Date(value);
             if (Number.isNaN(date.getTime())) return '';
 
-            // Compute MST time (UTC-7) to keep relative times consistent regardless of the user's local timezone
-            const msOffset = 7 * 60 * 60 * 1000; // 7 hours
-            const nowMst = Date.now() - msOffset;
-            const dateMst = date.getTime() - msOffset;
+            const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
 
-            const seconds = Math.floor((nowMst - dateMst) / 1000);
-
-            if (seconds < 60) {
-                return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
+            if (minutes <= 0) {
+                return '0 minutes ago';
             }
-
-            const minutes = Math.floor(seconds / 60);
             if (minutes < 60) {
                 return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
             }
@@ -332,38 +382,106 @@
         }
 
         // Prompt user for a comment and send it to the API
-        async function commentRecipe(id) {
-            const text = prompt('Enter your comment:');
-            if (!text || !text.trim()) return;
+        let activeCommentRecipeId = null;
 
+        async function showCommentModal(id, recipeTitle) {
             const token = localStorage.getItem('token');
             if (!token) {
                 alert('You must be logged in to comment.');
                 return;
             }
 
+            activeCommentRecipeId = id;
+            const modal = document.getElementById('commentModal');
+            const title = document.getElementById('commentModalTitle');
+            const list = document.getElementById('commentList');
+            const input = document.getElementById('commentInput');
+
+            title.textContent = `Comments for: ${recipeTitle}`;
+            list.innerHTML = '<p>Loading comments...</p>';
+            input.value = '';
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+
             try {
                 const res = await fetch(`http://localhost:3000/recipes/${id}/comments`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) {
+                    list.innerHTML = `<p>Error loading comments (${res.status})</p>`;
+                    return;
+                }
+
+                const comments = await res.json();
+                if (!comments.length) {
+                    list.innerHTML = '<p>No comments yet. Be the first.</p>';
+                    updateCommentCounter(id, 0);
+                    return;
+                }
+
+                list.innerHTML = comments.map(c => {
+                    const when = formatTimeAgo(c.created_at || c.createdAt || c.createdAt);
+                    const author = c.author || 'Anonymous';
+                    return `<div class="comment-item"><strong>${author}</strong> <em>${when}</em><p>${c.comment_text || c.comment}</p></div>`;
+                }).join('');
+
+                updateCommentCounter(id, comments.length);
+
+            } catch (err) {
+                console.error('Failed to load comments', err);
+                list.innerHTML = '<p>Failed to load comments.</p>';
+            }
+        }
+
+        function updateCommentCounter(recipeId, count) {
+            const card = document.querySelector(`.card[data-recipe-id="${recipeId}"]`);
+            if (!card) return;
+            const counter = card.querySelector('.comment-count');
+            if (counter) counter.textContent = count;
+        }
+
+        async function submitComment() {
+            const commentInput = document.getElementById('commentInput');
+            const comment = commentInput.value.trim();
+            if (!comment) {
+                alert('Please write a comment first.');
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in to post comments.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`http://localhost:3000/recipes/${activeCommentRecipeId}/comments`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: JSON.stringify({ comment_text: text.trim() })
+                    body: JSON.stringify({ comment_text: comment })
                 });
 
-                if (res.ok) {
-                    alert('Comment posted!');
-                    loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
-                } else {
-                    const data = await res.json();
-                    alert(data.error || 'Failed to post comment');
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.error || 'Failed to post comment');
+                    return;
                 }
 
+                commentInput.value = '';
+                await showCommentModal(activeCommentRecipeId);
             } catch (err) {
-                console.error(err);
-                alert('Failed to post comment');
+                console.error('Failed to submit comment', err);
+                alert('Failed to submit comment');
             }
+        }
+
+        function closeCommentModal() {
+            const modal = document.getElementById('commentModal');
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
         }
 
         // RATE
@@ -391,7 +509,8 @@
 
                 if (res.ok) {
                     alert('Rating saved!');
-                    loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
+                    notifyRecipesUpdated();
+                    refreshRecipesFeed();
                 }
 
             } catch (err) {
@@ -423,6 +542,7 @@
 
             const url = editingRecipeId ? `http://localhost:3000/recipes/${editingRecipeId}` : 'http://localhost:3000/recipes';
             const method = editingRecipeId ? 'PUT' : 'POST';
+            const successMessage = editingRecipeId ? 'Recipe updated successfully!' : 'Recipe created successfully';
 
             try {
                 const res = await fetch(url, {
@@ -443,11 +563,12 @@
                 }
 
                 if (res.ok) {
-                    alert('Recipe created successfully');
+                    alert(successMessage);
                     document.getElementById('recipeForm').reset();
                     document.getElementById('createForm').style.display = 'none';
                     editingRecipeId = null;
-                    loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
+                    notifyRecipesUpdated();
+                    refreshRecipesFeed();
                 } else {
                     const errorText = msg.error || msg.message || `Request failed (${res.status})`;
                     alert('Error creating recipe: ' + errorText);

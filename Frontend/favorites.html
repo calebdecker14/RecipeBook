@@ -14,6 +14,7 @@
             <a href="recipes.html">My Recipes</a>
             <a href="favorites.html">Favorites</a>
             <a href="community.html">Community</a>
+            <a href="aboutus.html">About Us</a>
         </div>
 
         <div id="profile-menu">
@@ -25,12 +26,18 @@
 
     <div class="container">
         <h1>Favorite Recipes ❤️</h1>
-        <div id="favorites-feed"></div>
+        <div id="favorites-feed" class="favorites-feed"></div>
     </div>
 
     <script src="auth.js"></script>
 
     <script>
+        function resolveImageUrl(imageUrl) {
+            if (!imageUrl) return '';
+            if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
+            return `http://localhost:3000${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             requireAuth();
             loadFavorites();
@@ -55,7 +62,7 @@
 
                 if (recipe.image_url) {
                     inner += `
-                        <img src="${recipe.image_url}" 
+                        <img src="${resolveImageUrl(recipe.image_url)}" 
                              alt="Recipe image" 
                              style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;">
                     `;

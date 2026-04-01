@@ -97,30 +97,32 @@ router.get('/:id', getRecipeById);
 
 
 // Protected route to update a recipe (requires auth + ownership)
-router.put('/:id', authenticateToken, (req, res, next) => {
-    upload.single('image')(req, res, (err) => {
-        if (err) {
-            if (err instanceof multer.MulterError) {
-                if (err.code === 'LIMIT_FILE_SIZE') {
-                    return res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
+// This route accepts multipart/form-data (image upload optional) and JSON.
+const conditionalUpload = (req, res, next) => {
+    const contentType = req.headers['content-type'];
+
+    // If payload is multipart form data (file upload), run multer.
+    if (contentType && contentType.includes('multipart/form-data')) {
+        upload.single('image')(req, res, (err) => {
+            if (err) {
+                if (err instanceof multer.MulterError) {
+                    if (err.code === 'LIMIT_FILE_SIZE') {
+                        return res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
+                    }
+                    return res.status(400).json({ error: 'File upload error: ' + err.message });
+                } else {
+                    return res.status(400).json({ error: err.message });
                 }
-                return res.status(400).json({ error: 'File upload error: ' + err.message });
-            } else {
-                return res.status(400).json({ error: err.message });
             }
-        }
+            next();
+        });
+    } else {
+        // For non-multipart requests (JSON, etc.), do not run multer.
         next();
-    });
-}, updateRecipe);
+    }
+};
 
-// Public route to fetch a single recipe by ID
-router.get('/:id', getRecipeById);
-
-// Create a recipe (requires login)
-router.post('/', authenticateToken, createRecipe);
-
-// UPDATE RECIPE (THIS WAS MISSING)
-router.put('/:id', authenticateToken, updateRecipe);
+router.put('/:id', authenticateToken, conditionalUpload, updateRecipe);
 
 
 // =====================

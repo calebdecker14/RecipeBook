@@ -15,6 +15,7 @@
         <a href="recipes.html">My Recipes</a>
         <a href="favorites.html">Favorites</a>
         <a href="community.html">Community</a>
+        <a href="aboutus.html">About Us</a>
     </div>
 
     <div id="profile-menu">
@@ -30,9 +31,25 @@
     <p class="hero-slogan"> 🍋 Let's get Zesty!🍋</p>
 </section>
 
+    <section class="analytics-row" aria-label="Chef analytics metrics">
+        <div class="analytics-card">
+            <h3>My Recipes</h3>
+            <p id="my-recipes-count">0</p>
+        </div>
+        <div class="analytics-card">
+            <h3>Average Recipe Rating</h3>
+            <p id="avg-rating">0.0</p>
+        </div>
+        <div class="analytics-card">
+            <h3>Favorited Recipes</h3>
+            <p id="favorited-count">0</p>
+        </div>
+    </section>
+
     <h2 class="section-title">Chef's Favorites</h2>
 
     <div id="featured-recipes" class="recipe-grid"></div>
+
 </div>
 
 
@@ -44,10 +61,45 @@
 
     <script>
 
+function resolveImageUrl(imageUrl) {
+    if (!imageUrl) return '';
+    if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
+    return `http://localhost:3000${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
+}
+
     document.addEventListener("DOMContentLoaded", () => {
     requireAuth();
+    loadDashboardAnalytics();
     loadFeaturedRecipes();
 });
+
+async function loadDashboardAnalytics() {
+    const token = localStorage.getItem('token');
+    let userRecipes = [];
+
+    try {
+        const res = await fetch('http://localhost:3000/recipes/my', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+            userRecipes = await res.json();
+        } else {
+            console.warn('Could not fetch user recipes for analytics', await res.text());
+        }
+    } catch (err) {
+        console.error('Error loading dashboard analytics recipes:', err);
+    }
+
+    const recipeCount = userRecipes.length;
+    const avgRating = recipeCount ? (userRecipes.reduce((sum, r) => sum + Number(r.average_rating || 0), 0) / recipeCount) : 0;
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const favoriteCount = Array.isArray(favorites) ? favorites.length : 0;
+
+    document.getElementById('my-recipes-count').textContent = recipeCount;
+    document.getElementById('avg-rating').textContent = avgRating.toFixed(1);
+    document.getElementById('favorited-count').textContent = favoriteCount;
+}
 
 async function loadFeaturedRecipes() {
     try {
@@ -65,13 +117,13 @@ async function loadFeaturedRecipes() {
             card.className = "recipe-card";
 
             card.innerHTML = `
-                <img src="${r.image_url}" alt="Recipe Image">
+                <img src="${resolveImageUrl(r.image_url)}" alt="Recipe Image">
                 <h3>${r.title}</h3>
                 <p>${r.description.substring(0, 80)}...</p>
             `;
 
             card.onclick = () => {
-                window.location.href = `recipe.html?id=${r.id}`;
+                window.location.href = 'community.html';
             };
 
             container.appendChild(card);
@@ -80,6 +132,29 @@ async function loadFeaturedRecipes() {
     } catch (err) {
         console.error("Error loading featured recipes:", err);
     }
+}
+
+function callProtectedRoute() {
+    const token = localStorage.getItem("token");
+
+    fetch("http://localhost:3000/profile", {
+        method: "GET",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+        .then(res => {
+            if (!res.ok) throw new Error("Unauthorized");
+            return res.json();
+        })
+        .then(data => {
+            document.getElementById("authMessage").innerText =
+                "Authorized! Welcome " + data.username;
+        })
+        .catch(() => {
+            document.getElementById("authMessage").innerText =
+                "Authorization failed. Please log in again.";
+        });
 }
 </script>
 
