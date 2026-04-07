@@ -26,6 +26,45 @@
 
     <div class="container">
         <h1>Community Feed</h1>
+        <div class="card" style="margin-bottom:20px;">
+            <h3>Filter Recipes</h3>
+            <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+                <div>
+                    <label for="timeFilter">Estimated Time</label><br>
+                    <select id="timeFilter">
+                        <option value="">All</option>
+                        <option value="0-5">0-5 minutes</option>
+                        <option value="5-15">5-15 minutes</option>
+                        <option value="15-45">15-45 minutes</option>
+                        <option value="45+">45-60+ minutes</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="ratingFilter">Rating</label><br>
+                    <select id="ratingFilter">
+                        <option value="">All</option>
+                        <option value="0-1">0-1 stars</option>
+                        <option value="2-3">2-3 stars</option>
+                        <option value="4-5">4-5 stars</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="commentFilter">Comments</label><br>
+                    <select id="commentFilter">
+                        <option value="">All</option>
+                        <option value="has_comments">Has comments</option>
+                        <option value="no_comments">No comments</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button id="applyFilters" type="button">Apply Filters</button>
+                    <button id="clearFilters" type="button">Clear</button>
+                </div>
+            </div>
+        </div>
         <div class="nav-search">
     <input type="text" id="recipe-search" placeholder="Search community recipes..." onkeyup="filterFeed()">
         </div>
@@ -43,6 +82,7 @@
 
     <script src="auth.js"></script>
     <script>
+        let activeFilters = { time: '', rating: '', comments: '' };
         const RECIPES_UPDATED_KEY = 'recipes_last_updated';
         const API_BASE_URL = 'http://localhost:3000';
 
@@ -114,7 +154,12 @@
 
         async function loadFeed(timeFilter = '', ratingFilter = '', commentFilter = '') {
             try {
-                const res = await fetch(`http://localhost:3000/recipes?_=${Date.now()}`, {
+                const params = new URLSearchParams({ _: Date.now().toString() });
+                if (timeFilter) params.set('time_filter', timeFilter);
+                if (ratingFilter) params.set('rating_filter', ratingFilter);
+                if (commentFilter) params.set('comment_filter', commentFilter);
+
+                const res = await fetch(`http://localhost:3000/recipes?${params.toString()}`, {
                     cache: 'no-store'
                 });
                 const recipes = await res.json();
