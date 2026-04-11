@@ -1,0 +1,305 @@
+/* GLOBAL FONT */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+/* FULL PAGE BACKGROUND */
+body {
+    background-image: url('uploads/lemon-background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    position: relative;
+    z-index: 0;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.45) 0%,
+        rgba(255,255,255,0.30) 25%,
+        rgba(255,255,255,0.18) 50%,
+        rgba(0,0,0,0.25) 80%,
+        rgba(0,0,0,0.35) 100%
+    );
+    filter: blur(4px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* NAVBAR (MATCHES DASHBOARD EXACTLY) */
+nav {
+    background-color: rgba(255, 235, 120, 0.55);
+    backdrop-filter: blur(10px);
+    padding: 18px 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    border-radius: 0 0 20px 20px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav > div:first-child {
+    display: flex;
+    gap: 30px;
+}
+
+nav a {
+    font-size: 18px;
+    font-weight: 500;
+    color: #1a1a1a;
+    text-decoration: none;
+}
+
+nav a:hover {
+    opacity: 0.7;
+    transition: 0.2s ease;
+}
+
+/* MAIN LAYOUT */
+.meal-planner-container {
+    display: flex;
+    width: 95%;
+    max-width: 1600px;
+    margin: 40px auto;
+    gap: 40px;
+    position: relative;
+    z-index: 1;
+}
+
+/* LEFT: CALENDAR SECTION */
+.calendar-section {
+    flex: 3;
+    color: white;
+}
+
+#profile-btn {
+    background: #6FB34A;
+    color: rgb(0, 0, 0);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.calendar-section h2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* spacing between title and month */
+    margin-bottom: 10px;
+}
+
+#monthLabel {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.month-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 10px;
+}
+
+.month-arrow {
+    background: none;
+    border: none;
+    font-size: 33px;
+    cursor: pointer;
+    padding: 4px 10px;
+    color: #444;
+    transition: 0.2s ease;
+}
+
+.month-arrow:hover {
+    color: #6FB34A;
+    transform: scale(1.2);
+}
+
+
+.weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #4a4a4a;
+    font-size: 16px;
+}
+
+.weekday-row div {
+    padding: 6px 0;
+}
+
+
+/* CALENDAR GRID */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 14px;
+}
+
+/* INDIVIDUAL DAY CELL */
+.calendar-day {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 10px;
+    min-height: 180px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.calendar-day.today .day-number {
+    background: #6FB34A;
+    color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+
+.calendar-day:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+
+/* DAY NUMBER */
+.day-number {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+}
+
+/* RECIPES INSIDE A DAY */
+.day-recipes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.calendar-recipe-tag {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.75);
+    padding: 6px 8px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.calendar-recipe-tag img {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    margin-right: 8px;
+}
+
+.calendar-recipe-tag span {
+    color: #000 !important;
+    font-weight: 600;
+}
+
+
+/* RIGHT: RECIPE LIST SECTION */
+.recipe-list-section {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    height: fit-content;
+    max-height: 80vh;
+    overflow-y: auto;
+    margin-left: auto;
+
+    /* NEW: freeze the entire panel */
+    position: sticky;
+    top: 100px;
+    z-index: 5;
+}
+
+
+/* SEARCH BAR */
+#recipeSearch {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    margin-bottom: 18px;
+    font-size: 16px;
+
+    /* NEW: freeze search bar */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(6px);
+}
+
+
+/* RECIPE LIST ITEMS */
+.recipe-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: rgba(255,255,255,0.75);
+    border-radius: 12px;
+    cursor: grab;
+    border: 1px solid rgba(0,0,0,0.08);
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.recipe-item:hover {
+    background: rgba(255,255,255,1);
+    transform: translateY(-2px);
+}
+
+.recipe-item img {
+    width: 55px;
+    height: 55px;
+    border-radius: 10px;
+    margin-right: 12px;
+}
+
+/* CORNER LOGO */
+.zestify-corner-logo {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    opacity: 0.85;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.zestify-corner-logo img {
+    width: 70px;
+    height: auto;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+    border-radius: 10px;
+}
+
+.zestify-corner-logo:hover {
+    opacity: 1;
+}

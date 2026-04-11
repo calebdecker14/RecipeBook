@@ -60,6 +60,11 @@ const ratingRoutes = require('./DataBase/routes/ratings');
 app.use('/ratings', ratingRoutes);
 app.use('/api/ratings', ratingRoutes);
 
+// Calendar Routes
+const mealPlanRoutes = require("./DataBase/routes/mealPlanRoutes");
+app.use("/mealplan", mealPlanRoutes);
+
+
 // Start server
 const PORT = 3000;
 app.listen(PORT, () => {
