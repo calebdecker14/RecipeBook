@@ -279,7 +279,11 @@
         async function loadFeed(timeFilter = '', ratingFilter = '', commentFilter = '') {
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch(`http://localhost:3000/recipes/my?_=${Date.now()}`, {
+                const params = new URLSearchParams({ _: Date.now().toString() });
+                if (timeFilter) params.set('time_filter', timeFilter);
+                if (ratingFilter) params.set('rating_filter', ratingFilter);
+                if (commentFilter) params.set('comment_filter', commentFilter);
+                const res = await fetch(`http://localhost:3000/recipes/my?${params.toString()}`, {
                     cache: 'no-store',
                     headers: token ? { 'Authorization': 'Bearer ' + token } : {}
                 });
@@ -294,7 +298,10 @@
                 }
 
                 if (recipes.length === 0) {
-                    feed.innerHTML = '<p>You have not posted any recipes yet. Click "Create Recipe" to share your first recipe!</p>';
+                    const filtersActive = timeFilter || ratingFilter || commentFilter;
+                    feed.innerHTML = filtersActive
+                        ? '<p>No recipes found. Click "Upload Recipe" to share your first recipe!</p>'
+                        : '<p>You have not posted any recipes yet. Click "Upload Recipe" to share your first recipe!</p>';
                     return;
                 }
 
