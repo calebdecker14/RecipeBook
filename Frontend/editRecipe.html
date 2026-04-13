@@ -16,34 +16,21 @@
     <div class="container">
         <h2>Edit Recipe</h2>
 
-        <input id="title" placeholder="Recipe Title"><br><br>
+        <!-- FORM (IMPORTANT) -->
+        <form id="editRecipeForm">
 
-        <textarea id="description" placeholder="Recipe Description" maxlength="800" rows="5"></textarea>
-        <p id="char-count">0 / 800</p>
+            <label>Title:</label><br>
+            <input type="text" id="title" placeholder="Recipe Title" required><br><br>
 
-        <details class="expand-section">
-            <summary>Ingredients</summary>
-            <div id="ingredients-section">
-                <div class="ingredient-row">
-                    <input type="checkbox">
-                    <input type="text" class="ingredient-input" placeholder="2 cups flour">
-                </div>
-                <button onclick="addIngredient()">+ Add Ingredient</button>
-            </div>
-        </details>
+            <label>Description:</label><br>
+            <textarea id="description" placeholder="Recipe Description" required></textarea><br><br>
 
-        <details class="expand-section">
-            <summary>Instructions</summary>
-            <div id="instructions-section">
-                <div class="instruction-row">
-                    <input type="text" class="instruction-input" placeholder="Step 1">
-                </div>
-                <button onclick="addInstruction()">+ Add Step</button>
-            </div>
-        </details>
+            <label>Estimated Time:</label><br>
+            <input type="text" id="estimated_time" placeholder="e.g. 20 minutes"><br><br>
 
-        <br>
-        <button onclick="updateRecipe()">Update Recipe</button>
+            <button type="submit">Update Recipe</button>
+
+        </form>
     </div>
 
     <script src="auth.js"></script>

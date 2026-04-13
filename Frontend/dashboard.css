@@ -1,32 +1,22 @@
-/* GLOBAL FONT + RESET */
-html,
-body {
+/* GLOBAL FONT */
+html, body {
+    html, body {
     margin: 0;
     padding: 0;
     font-family: 'Inter', sans-serif;
 }
 
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
-button,
-input[type="button"],
-input[type="submit"],
-input[type="reset"] {
+button, input[type="button"], input[type="submit"], input[type="reset"] {
     font-family: Helvetica, Arial, sans-serif;
-    cursor: pointer;
 }
 
 /* NAVBAR */
 nav {
-    background-color: rgba(255, 235, 120, 0.55);
+    background-color: rgba(255, 235, 120, 0.55); /* soft yellow tint */
     backdrop-filter: blur(10px);
     padding: 18px 40px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     border-radius: 0 0 20px 20px;
 
     display: flex;
@@ -34,7 +24,7 @@ nav {
     align-items: center;
 }
 
-nav>div:first-child {
+nav > div:first-child {
     display: flex;
     gap: 30px;
 }
@@ -57,24 +47,47 @@ nav a:hover {
     display: inline-block;
 }
 
+/* Account Settings button */
 #profile-btn {
     background: #6FB34A;
-    color: black;
+    color: rgb(0, 0, 0);
     padding: 10px 18px;
     border-radius: 8px;
     font-size: 16px;
-    border: none;
+}
+
+/* Create Recipe button - Outline style */
+#showCreate {
+    border-radius: 16px;
+    padding: 20px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: 2px solid #cbd5e1;
+    color: #1e293b;
+    background: transparent;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: block;
+    margin: 40px auto;
+}
+
+#showCreate:hover {
+    background-color: #f8fafc;
+}
+
+.danger {
+    color: red;
 }
 
 /* FULL PAGE BACKGROUND */
 body {
-    background-image: url('uploads/lemon-background.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    position: relative;
-    min-height: 100vh;
-    z-index: 0;
+  background-image: url('uploads/lemon-background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  min-height: 100vh;
+  z-index: 0;
 }
 
 body::before {
@@ -82,18 +95,12 @@ body::before {
     position: fixed;
     inset: 0;
     min-height: 100vh;
-    background: linear-gradient(to bottom,
-            rgba(255, 255, 255, 0.45) 0%,
-            rgba(255, 255, 255, 0.30) 25%,
-            rgba(255, 255, 255, 0.18) 50%,
-            rgba(0, 0, 0, 0.25) 80%,
-            rgba(0, 0, 0, 0.35) 100%);
+    background: linear-gradient(to bottom, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.30) 25%, rgba(255,255,255,0.18) 50%, rgba(0,0,0,0.25) 80%, rgba(0,0,0,0.35) 100%);
     filter: blur(4px);
     pointer-events: none;
     z-index: 0;
 }
 
-/* KEEP CONTENT ABOVE BACKGROUND OVERLAY */
 .container,
 nav,
 .hero,
@@ -105,12 +112,37 @@ nav,
     z-index: 1;
 }
 
-/* MAIN CONTAINER */
-.container {
-    width: 90%;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 20px 0;
+
+/* SECTION TITLE */
+.section-title {
+    text-align: center;
+    font-size: 32px;
+    margin-top: 40px;
+    margin-bottom: 25px;
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+
+}
+
+/* CORNER LOGO */
+.zestify-corner-logo {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    opacity: 0.85;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.zestify-corner-logo img {
+    width: 70px;
+    height: auto;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+    border-radius: 10px;
+}
+
+.zestify-corner-logo:hover {
+    opacity: 1;
 }
 
 /* HERO */
@@ -125,6 +157,9 @@ nav,
     backdrop-filter: blur(4px);
     border-radius: 0 0 25px 25px;
     margin-bottom: 40px;
+    background: linear-gradient(
+    rgba(0,0,0,0.15),
+    rgba(0,0,0,0.15));
 }
 
 .hero-title {
@@ -132,7 +167,7 @@ nav,
     font-weight: 700;
     letter-spacing: 2px;
     color: white;
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+    text-shadow: 0 4px 12px rgba(0,0,0,0.45);
 }
 
 .hero-slogan {
@@ -142,17 +177,14 @@ nav,
     opacity: 0.95;
 }
 
-/* SECTION TITLE */
-.section-title {
-    text-align: center;
-    font-size: 32px;
-    margin-top: 40px;
-    margin-bottom: 25px;
-    color: white;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 0;
 }
 
-/* ANALYTICS CARDS */
+/* Recipes grid layout */
 .analytics-row {
     display: grid;
     grid-template-columns: repeat(3, minmax(200px, 1fr));
@@ -165,7 +197,7 @@ nav,
     backdrop-filter: blur(8px);
     border-radius: 14px;
     padding: 18px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
     text-align: center;
 }
 
@@ -182,7 +214,6 @@ nav,
     color: #1a1a1a;
 }
 
-/* FEATURED RECIPE GRID */
 .recipe-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -195,14 +226,14 @@ nav,
     backdrop-filter: blur(6px);
     border-radius: 16px;
     padding: 18px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .recipe-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
 }
 
 .recipe-card img {
@@ -221,47 +252,4 @@ nav,
 .recipe-card p {
     font-size: 14px;
     opacity: 0.85;
-}
-
-/* CORNER LOGO */
-.zestify-corner-logo {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999;
-    opacity: 0.85;
-    transition: opacity 0.2s ease-in-out;
-}
-
-.zestify-corner-logo img {
-    width: 70px;
-    height: auto;
-    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
-    border-radius: 10px;
-}
-
-.zestify-corner-logo:hover {
-    opacity: 1;
-}
-
-/* HIDDEN ELEMENTS */
-.hidden {
-    display: none !important;
-}
-
-/* RESPONSIVE */
-@media (max-width: 900px) {
-
-    .analytics-row,
-    .recipe-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .hero-title {
-        font-size: 48px;
-    }
-
-    .hero-slogan {
-        font-size: 20px;
-    }
-}
+}}
