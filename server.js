@@ -60,10 +60,25 @@ const ratingRoutes = require('./DataBase/routes/ratings');
 app.use('/ratings', ratingRoutes);
 app.use('/api/ratings', ratingRoutes);
 
-// Calendar Routes
-const mealPlanRoutes = require("./DataBase/routes/mealPlanRoutes");
-app.use("/mealplan", mealPlanRoutes);
+// Follows routes
+const followsRoutes = require('./DataBase/routes/follows');
+app.use('/follows', followsRoutes);
 
+// Shopping list routes
+const shoppingRoutes = require('./DataBase/routes/shopping');
+app.use('/api/shopping-list', shoppingRoutes);
+
+// Ensure user_follows table exists
+pool.query(`
+    CREATE TABLE IF NOT EXISTS user_follows (
+        follower_id  INT NOT NULL,
+        following_id INT NOT NULL,
+        created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (follower_id, following_id),
+        FOREIGN KEY (follower_id)  REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+`).catch(err => console.error('user_follows table creation failed:', err));
 
 // Start server
 const PORT = 3000;

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zestify Calendar</title>
     <link rel="stylesheet" href="calendar.css">
+    <link rel="stylesheet" href="shopping-list.css">
 </head>
 
 <body>
@@ -68,7 +69,20 @@
 
     </div>
 
+    <button id="shopping-list-btn" class="shopping-list-btn">🛒</button>
+
+    <div id="shopping-modal" class="shopping-modal-overlay">
+        <div class="modal-content-shopping">
+            <span class="shopping-close-btn">&times;</span>
+            <h2>Shopping List</h2>
+            <textarea id="shopping-list-text" placeholder="Start typing..."></textarea>
+            <button id="save-shopping-btn" class="save-list-btn">Save Changes</button>
+            <div id="save-status"></div>
+        </div>
+    </div>
+
     <script src="calendar.js"></script>
+    <script src="shopping.js"></script>
 
     <div class="zestify-corner-logo">
     <img src="../uploads/Zestify.png" alt="Zestify Logo">

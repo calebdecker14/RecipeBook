@@ -111,4 +111,27 @@ router.delete('/delete', authenticateToken, async (req, res) => {
   res.json({ message: 'Account deleted' });
 });
 
+// ----------------------
+// GET /profile/user/:userId  — public profile for any user
+// ----------------------
+router.get('/user/:userId', async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  if (Number.isNaN(userId)) return res.status(400).json({ error: 'Invalid user id' });
+  try {
+    const [rows] = await pool.query(
+      'SELECT id, username, profile_pic, bio FROM users WHERE id = ?',
+      [userId]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    const [countRows] = await pool.query(
+      'SELECT COUNT(*) AS follower_count FROM user_follows WHERE following_id = ?',
+      [userId]
+    );
+    res.json({ ...rows[0], follower_count: countRows[0].follower_count });
+  } catch (err) {
+    console.error('get user profile error:', err);
+    res.status(500).json({ error: 'Failed to fetch user profile' });
+  }
+});
+
 module.exports = router;
