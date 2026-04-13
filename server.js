@@ -60,6 +60,22 @@ const ratingRoutes = require('./DataBase/routes/ratings');
 app.use('/ratings', ratingRoutes);
 app.use('/api/ratings', ratingRoutes);
 
+// Follows routes
+const followsRoutes = require('./DataBase/routes/follows');
+app.use('/follows', followsRoutes);
+
+// Ensure user_follows table exists
+pool.query(`
+    CREATE TABLE IF NOT EXISTS user_follows (
+        follower_id  INT NOT NULL,
+        following_id INT NOT NULL,
+        created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (follower_id, following_id),
+        FOREIGN KEY (follower_id)  REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+`).catch(err => console.error('user_follows table creation failed:', err));
+
 // Start server
 const PORT = 3000;
 app.listen(PORT, () => {

@@ -4,7 +4,728 @@
 <head>
     <title>Community</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .tab-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .tab-bar button {
+            padding: 8px 22px;
+            border-radius: 20px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            background: rgba(255,255,255,0.45);
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .tab-bar button.active {
+            background: rgba(255,255,255,0.85);
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+        .author-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            font-weight: bold;
+            color: #2e7d32;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: inherit;
+        }
+        .author-btn:hover { color: #1b5e20; }
+        .follower-count-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            color: #2e7d32;
+            font-weight: bold;
+            text-decoration: underline;
+            font-size: inherit;
+        }
+        .follower-count-btn:hover { color: #1b5e20; }
+        .author-modal-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto 12px;
+        }
+        .author-modal-info { text-align: center; margin-bottom: 12px; }
+        .follow-success {
+            color: #2e7d32;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 8px;
+        }
+        .follower-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .follower-item img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        #followingHeader {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        #followingEmptyMsg { color: #888; font-style: italic; }
+    </style>
 </head>
+
+<body>
+
+    <nav>
+        <div>
+        <a href="dashboard.html">Home</a>
+        <a href="recipes.html">My Recipes</a>
+        <a href="favorites.html">Favorites</a>
+        <a href="community.html">Community</a>
+        <a href="aboutus.html">About Us</a>
+    </div>
+
+    <div id="profile-menu">
+        <button id="profile-btn" onclick="window.location.href='profile.html'">
+            Account Settings
+        </button>
+    </div>
+    </nav>
+
+    <div class="container">
+        <h1>Community Feed</h1>
+
+        <!-- Tab bar -->
+        <div class="tab-bar">
+            <button id="tabAll" class="active" onclick="switchTab('all')">All Recipes</button>
+            <button id="tabFollowing" onclick="switchTab('following')">Following</button>
+        </div>
+
+        <!-- ===== ALL RECIPES TAB ===== -->
+        <div id="tabAllContent">
+            <div class="card" style="margin-bottom:20px;">
+                <h3>Filter Recipes</h3>
+                <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+                    <div>
+                        <label for="timeFilter">Estimated Time</label><br>
+                        <select id="timeFilter">
+                            <option value="">All</option>
+                            <option value="0-5">0-5 minutes</option>
+                            <option value="5-15">5-15 minutes</option>
+                            <option value="15-45">15-45 minutes</option>
+                            <option value="45+">45-60+ minutes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="ratingFilter">Rating</label><br>
+                        <select id="ratingFilter">
+                            <option value="">All</option>
+                            <option value="0-1">0-1 stars</option>
+                            <option value="2-3">2-3 stars</option>
+                            <option value="4-5">4-5 stars</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="commentFilter">Comments</label><br>
+                        <select id="commentFilter">
+                            <option value="">All</option>
+                            <option value="has_comments">Has comments</option>
+                            <option value="no_comments">No comments</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button id="applyFilters" type="button">Apply Filters</button>
+                        <button id="clearFilters" type="button">Clear</button>
+                    </div>
+                </div>
+            </div>
+            <div class="nav-search">
+                <input type="text" id="recipe-search" placeholder="Search community recipes..." onkeyup="filterFeed()">
+            </div>
+            <div id="feed" class="community-feed"></div>
+        </div>
+
+        <!-- ===== FOLLOWING TAB ===== -->
+        <div id="tabFollowingContent" style="display:none;">
+            <div id="followingHeader">
+                <span>
+                    Your followers:
+                    <button class="follower-count-btn" id="myFollowerCountBtn" onclick="showFollowersModal()">…</button>
+                </span>
+            </div>
+
+            <div class="card" style="margin-bottom:20px;">
+                <h3>Filter Recipes</h3>
+                <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+                    <div>
+                        <label for="fTimeFilter">Estimated Time</label><br>
+                        <select id="fTimeFilter">
+                            <option value="">All</option>
+                            <option value="0-5">0-5 minutes</option>
+                            <option value="5-15">5-15 minutes</option>
+                            <option value="15-45">15-45 minutes</option>
+                            <option value="45+">45-60+ minutes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="fRatingFilter">Rating</label><br>
+                        <select id="fRatingFilter">
+                            <option value="">All</option>
+                            <option value="0-1">0-1 stars</option>
+                            <option value="2-3">2-3 stars</option>
+                            <option value="4-5">4-5 stars</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="fCommentFilter">Comments</label><br>
+                        <select id="fCommentFilter">
+                            <option value="">All</option>
+                            <option value="has_comments">Has comments</option>
+                            <option value="no_comments">No comments</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button id="fApplyFilters" type="button">Apply Filters</button>
+                        <button id="fClearFilters" type="button">Clear</button>
+                    </div>
+                </div>
+            </div>
+            <div class="nav-search">
+                <input type="text" id="following-search" placeholder="Search following feed..." onkeyup="filterFollowingFeed()">
+            </div>
+            <div id="followingFeed" class="community-feed"></div>
+        </div>
+    </div>
+
+    <!-- Comment modal -->
+    <div id="commentModal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeCommentModal()">×</button>
+            <h3 id="commentModalTitle">Comments</h3>
+            <div id="commentList" class="comment-list"></div>
+            <textarea id="commentInput" placeholder="Write your comment..." maxlength="500"></textarea>
+            <button id="commentSubmitButton" onclick="submitComment()">Post Comment</button>
+        </div>
+    </div>
+
+    <!-- Author profile modal -->
+    <div id="authorModal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAuthorModal()">×</button>
+            <div id="authorModalBody"></div>
+        </div>
+    </div>
+
+    <!-- Followers modal -->
+    <div id="followersModal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeFollowersModal()">×</button>
+            <h3>Your Followers</h3>
+            <div id="followersList"></div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        let activeFilters         = { time: '', rating: '', comments: '' };
+        let activeFollowingFilters = { time: '', rating: '', comments: '' };
+        const RECIPES_UPDATED_KEY = 'recipes_last_updated';
+        const API_BASE_URL = 'http://localhost:3000';
+
+        // Decode JWT payload for current user id (display only, not auth)
+        function getCurrentUserId() {
+            const token = localStorage.getItem('token');
+            if (!token) return null;
+            try {
+                return JSON.parse(atob(token.split('.')[1])).id;
+            } catch {
+                return null;
+            }
+        }
+
+        function resolveImageUrl(imageUrl) {
+            if (!imageUrl) return '';
+            if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
+            return `${API_BASE_URL}${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
+        }
+
+        function notifyRecipesUpdated() {
+            localStorage.setItem(RECIPES_UPDATED_KEY, Date.now().toString());
+        }
+
+        function setupLiveRecipeRefresh() {
+            window.addEventListener('storage', (event) => {
+                if (event.key === RECIPES_UPDATED_KEY) loadFeed();
+            });
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) loadFeed();
+            });
+        }
+
+        // ── Tab switching ──────────────────────────────────────────────
+        function switchTab(tab) {
+            const isAll = tab === 'all';
+            document.getElementById('tabAllContent').style.display       = isAll ? '' : 'none';
+            document.getElementById('tabFollowingContent').style.display = isAll ? 'none' : '';
+            document.getElementById('tabAll').classList.toggle('active',       isAll);
+            document.getElementById('tabFollowing').classList.toggle('active', !isAll);
+            if (!isAll) loadFollowingFeed();
+        }
+
+        // ── Text search (client-side) ──────────────────────────────────
+        function filterFeed() {
+            const input = document.getElementById('recipe-search').value.toLowerCase();
+            document.querySelectorAll('#feed .card').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(input) ? '' : 'none';
+            });
+        }
+
+        function filterFollowingFeed() {
+            const input = document.getElementById('following-search').value.toLowerCase();
+            document.querySelectorAll('#followingFeed .card').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(input) ? '' : 'none';
+            });
+        }
+
+        // ── Recipe card builder ────────────────────────────────────────
+        function buildRecipeCard(r) {
+            const currentUserId = getCurrentUserId();
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.recipeId = r.id;
+
+            let inner = `<h3>${r.title}</h3>`;
+            const imageUrl = resolveImageUrl(r.image_url);
+            if (imageUrl) {
+                inner += `<img src="${imageUrl}" alt="Recipe image" style="max-width:200px;max-height:200px;display:block;margin-bottom:10px;">`;
+            } else {
+                inner += `<p><em>No Picture Uploaded</em></p>`;
+            }
+            inner += `<p>${r.description}</p>`;
+            if (r.estimated_time) inner += `<p><strong>Time:</strong> ${r.estimated_time}</p>`;
+
+            // Clickable author name (if we have an author_id)
+            if (r.author_id) {
+                inner += `<p><strong>Author:</strong> <button class="author-btn" onclick="showAuthorModal(${r.author_id})">
+                    ${r.author || 'Anonymous'}</button></p>`;
+            } else {
+                inner += `<p><strong>Author:</strong> ${r.author || 'Anonymous'}</p>`;
+            }
+
+            inner += `<p><strong>Published:</strong> ${formatTimeAgo(r.created_at)}</p>`;
+            if (r.updated_at && new Date(r.updated_at).getTime() !== new Date(r.created_at).getTime()) {
+                inner += `<p><strong>Updated:</strong> ${formatTimeAgo(r.updated_at)}</p>`;
+            }
+            inner += `<p><strong>Rating:</strong> ${Number(parseFloat(r.average_rating) || 0).toFixed(1)} ⭐</p>`;
+            inner += `<p><strong>Comments:</strong> <span class="comment-count">${r.comment_count}</span></p>`;
+            card.innerHTML = inner;
+
+            const commentBtn = document.createElement('button');
+            commentBtn.textContent = 'Comment';
+            commentBtn.addEventListener('click', () => showCommentModal(r.id, r.title));
+            card.appendChild(commentBtn);
+
+            const rateBtn = document.createElement('button');
+            rateBtn.textContent = 'Rate';
+            rateBtn.addEventListener('click', () => rateRecipe(r.id));
+            card.appendChild(rateBtn);
+
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const isFavorited = favorites.some(f => f.id === r.id);
+            const favBtn = document.createElement('button');
+            favBtn.className = 'favorite-heart';
+            favBtn.textContent = isFavorited ? '❤️' : '🤍';
+            favBtn.addEventListener('click', () => favoriteRecipe(r));
+            card.appendChild(favBtn);
+
+            return card;
+        }
+
+        // ── All Recipes feed ───────────────────────────────────────────
+        async function loadFeed(timeFilter = '', ratingFilter = '', commentFilter = '') {
+            try {
+                const params = new URLSearchParams({ _: Date.now().toString() });
+                if (timeFilter)    params.set('time_filter',    timeFilter);
+                if (ratingFilter)  params.set('rating_filter',  ratingFilter);
+                if (commentFilter) params.set('comment_filter', commentFilter);
+
+                const res = await fetch(`${API_BASE_URL}/recipes?${params}`, { cache: 'no-store' });
+                const recipes = await res.json();
+                const feed = document.getElementById('feed');
+                feed.innerHTML = '';
+                recipes.forEach(r => feed.appendChild(buildRecipeCard(r)));
+                filterFeed();
+            } catch (err) {
+                console.error('Load feed error', err);
+            }
+        }
+
+        // ── Following feed ─────────────────────────────────────────────
+        async function loadFollowingFeed(timeFilter = '', ratingFilter = '', commentFilter = '') {
+            const token = localStorage.getItem('token');
+            const feed  = document.getElementById('followingFeed');
+            feed.innerHTML = '<p>Loading…</p>';
+            try {
+                const params = new URLSearchParams({ _: Date.now().toString() });
+                if (timeFilter)    params.set('time_filter',    timeFilter);
+                if (ratingFilter)  params.set('rating_filter',  ratingFilter);
+                if (commentFilter) params.set('comment_filter', commentFilter);
+
+                const res = await fetch(`${API_BASE_URL}/recipes/following?${params}`, {
+                    cache: 'no-store',
+                    headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+                });
+                const recipes = await res.json();
+                feed.innerHTML = '';
+                if (!recipes.length) {
+                    feed.innerHTML = '<p id="followingEmptyMsg">Follow some users to see their recipes here.</p>';
+                    return;
+                }
+                recipes.forEach(r => feed.appendChild(buildRecipeCard(r)));
+                filterFollowingFeed();
+            } catch (err) {
+                console.error('Load following feed error', err);
+                feed.innerHTML = '<p>Failed to load following feed.</p>';
+            }
+        }
+
+        // ── My follower count ──────────────────────────────────────────
+        async function loadMyFollowerCount() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/follows/followers`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) return;
+                const followers = await res.json();
+                document.getElementById('myFollowerCountBtn').textContent = followers.length;
+            } catch (err) {
+                console.error('Failed to load follower count', err);
+            }
+        }
+
+        // ── Author profile modal ───────────────────────────────────────
+        async function showAuthorModal(authorId) {
+            const token = localStorage.getItem('token');
+            const currentUserId = getCurrentUserId();
+            const modal = document.getElementById('authorModal');
+            const body  = document.getElementById('authorModalBody');
+            body.innerHTML = '<p>Loading…</p>';
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+
+            try {
+                const [profileRes, statusRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/profile/user/${authorId}`),
+                    token
+                        ? fetch(`${API_BASE_URL}/follows/status/${authorId}`, {
+                            headers: { 'Authorization': 'Bearer ' + token }
+                          })
+                        : Promise.resolve(null)
+                ]);
+
+                if (!profileRes.ok) {
+                    body.innerHTML = '<p>Could not load profile.</p>';
+                    return;
+                }
+
+                const profile  = await profileRes.json();
+                const isMe     = profile.id === currentUserId;
+                const isFollowing = statusRes && statusRes.ok
+                    ? (await statusRes.json()).following
+                    : false;
+
+                const picUrl = resolveImageUrl(profile.profile_pic);
+                let html = '';
+                if (picUrl) {
+                    html += `<img class="author-modal-pic" src="${picUrl}" alt="${profile.username}'s profile picture">`;
+                } else {
+                    html += `<div style="width:80px;height:80px;border-radius:50%;background:#c8e6c9;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 12px;">👤</div>`;
+                }
+                html += `<div class="author-modal-info">
+                    <h3 style="margin:0 0 4px">${profile.username}</h3>
+                    <p style="color:#555;margin:0 0 6px">${profile.bio || '<em>No bio yet.</em>'}</p>
+                    <p><strong>${profile.follower_count}</strong> follower${profile.follower_count !== 1 ? 's' : ''}</p>
+                </div>`;
+
+                if (!isMe && token) {
+                    html += `<div style="text-align:center">
+                        <button id="followToggleBtn" onclick="toggleFollow(${profile.id}, ${isFollowing})">
+                            ${isFollowing ? 'Unfollow' : 'Follow'}
+                        </button>
+                        <p id="followMsg" class="follow-success" style="display:none"></p>
+                    </div>`;
+                } else if (isMe) {
+                    html += `<p style="text-align:center;color:#888"><em>This is you.</em></p>`;
+                }
+
+                body.innerHTML = html;
+            } catch (err) {
+                console.error('Author modal error', err);
+                body.innerHTML = '<p>Failed to load profile.</p>';
+            }
+        }
+
+        async function toggleFollow(authorId, currentlyFollowing) {
+            const token = localStorage.getItem('token');
+            if (!token) { alert('You must be logged in to follow users.'); return; }
+            const btn = document.getElementById('followToggleBtn');
+            const msg = document.getElementById('followMsg');
+            btn.disabled = true;
+
+            try {
+                const method = currentlyFollowing ? 'DELETE' : 'POST';
+                const res = await fetch(`${API_BASE_URL}/follows/${authorId}`, {
+                    method,
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.error || 'Action failed');
+                    btn.disabled = false;
+                    return;
+                }
+                const nowFollowing = !currentlyFollowing;
+                btn.textContent    = nowFollowing ? 'Unfollow' : 'Follow';
+                btn.disabled       = false;
+                btn.onclick        = () => toggleFollow(authorId, nowFollowing);
+                msg.textContent    = nowFollowing ? '✓ Now following!' : '✓ Unfollowed.';
+                msg.style.display  = 'block';
+                loadMyFollowerCount();
+            } catch (err) {
+                console.error('Follow toggle error', err);
+                btn.disabled = false;
+            }
+        }
+
+        function closeAuthorModal() {
+            const modal = document.getElementById('authorModal');
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        // ── Followers list modal ───────────────────────────────────────
+        async function showFollowersModal() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            const modal = document.getElementById('followersModal');
+            const list  = document.getElementById('followersList');
+            list.innerHTML = '<p>Loading…</p>';
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/follows/followers`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const followers = await res.json();
+                if (!followers.length) {
+                    list.innerHTML = '<p>No followers yet.</p>';
+                    return;
+                }
+                list.innerHTML = followers.map(f => {
+                    const pic = resolveImageUrl(f.profile_pic);
+                    const img = pic
+                        ? `<img src="${pic}" alt="${f.username}">`
+                        : `<div style="width:36px;height:36px;border-radius:50%;background:#c8e6c9;display:flex;align-items:center;justify-content:center;">👤</div>`;
+                    return `<div class="follower-item">${img}<span>${f.username}</span></div>`;
+                }).join('');
+            } catch (err) {
+                console.error('Followers modal error', err);
+                list.innerHTML = '<p>Failed to load followers.</p>';
+            }
+        }
+
+        function closeFollowersModal() {
+            const modal = document.getElementById('followersModal');
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        // ── formatTimeAgo ──────────────────────────────────────────────
+        function formatTimeAgo(value) {
+            if (!value) return '';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
+            if (minutes <= 0) return '0 minutes ago';
+            if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+            const days = Math.floor(hours / 24);
+            return `${days} day${days !== 1 ? 's' : ''} ago`;
+        }
+
+        // ── Comment modal ──────────────────────────────────────────────
+        let activeCommentRecipeId = null;
+
+        async function showCommentModal(id, recipeTitle) {
+            const token = localStorage.getItem('token');
+            if (!token) { alert('You must be logged in to comment.'); return; }
+            activeCommentRecipeId = id;
+            const modal = document.getElementById('commentModal');
+            const title = document.getElementById('commentModalTitle');
+            const list  = document.getElementById('commentList');
+            const input = document.getElementById('commentInput');
+            title.textContent = `Comments for: ${recipeTitle}`;
+            list.innerHTML = '<p>Loading comments...</p>';
+            input.value = '';
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/recipes/${id}/comments`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) { list.innerHTML = `<p>Error loading comments (${res.status})</p>`; return; }
+                const comments = await res.json();
+                if (!comments.length) { list.innerHTML = '<p>No comments yet. Be the first.</p>'; updateCommentCounter(id, 0); return; }
+                list.innerHTML = comments.map(c => {
+                    const when   = formatTimeAgo(c.created_at || c.createdAt);
+                    const author = c.author || 'Anonymous';
+                    return `<div class="comment-item"><strong>${author}</strong> <em>${when}</em><p>${c.comment_text || c.comment}</p></div>`;
+                }).join('');
+                updateCommentCounter(id, comments.length);
+            } catch (err) {
+                console.error('Failed to load comments', err);
+                list.innerHTML = '<p>Failed to load comments.</p>';
+            }
+        }
+
+        function updateCommentCounter(recipeId, count) {
+            const card = document.querySelector(`.card[data-recipe-id="${recipeId}"]`);
+            if (!card) return;
+            const counter = card.querySelector('.comment-count');
+            if (counter) counter.textContent = count;
+        }
+
+        async function submitComment() {
+            const commentInput = document.getElementById('commentInput');
+            const comment = commentInput.value.trim();
+            if (!comment) { alert('Please write a comment first.'); return; }
+            const token = localStorage.getItem('token');
+            if (!token) { alert('You must be logged in to post comments.'); return; }
+            try {
+                const res = await fetch(`${API_BASE_URL}/recipes/${activeCommentRecipeId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ comment_text: comment })
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.error || 'Failed to post comment');
+                    return;
+                }
+                commentInput.value = '';
+                await showCommentModal(activeCommentRecipeId);
+            } catch (err) {
+                console.error('Failed to submit comment', err);
+                alert('Failed to submit comment');
+            }
+        }
+
+        function closeCommentModal() {
+            document.getElementById('commentModal').classList.add('hidden');
+            document.getElementById('commentModal').setAttribute('aria-hidden', 'true');
+        }
+
+        // ── Rating ─────────────────────────────────────────────────────
+        async function rateRecipe(id) {
+            const ratingStr = prompt('Rate this recipe (1-5):');
+            if (!ratingStr) return;
+            const rating = Number(ratingStr);
+            if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+                alert('Please enter a number between 1 and 5'); return;
+            }
+            const token = localStorage.getItem('token');
+            if (!token) { alert('You must be logged in to rate.'); return; }
+            try {
+                const res = await fetch(`${API_BASE_URL}/recipes/${id}/ratings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ rating })
+                });
+                const data = await res.json();
+                if (res.ok) { alert('Rating saved!'); notifyRecipesUpdated(); loadFeed(); }
+                else alert(data.error || 'Failed to save rating');
+            } catch (err) {
+                console.error('Save rating error', err);
+                alert('Failed to save rating');
+            }
+        }
+
+        // ── Favorites ──────────────────────────────────────────────────
+        function favoriteRecipe(recipe) {
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const existingIndex = favorites.findIndex(f => f.id === recipe.id);
+            if (existingIndex !== -1) {
+                favorites.splice(existingIndex, 1);
+                alert('Removed from favorites');
+            } else {
+                favorites.push(recipe);
+                alert('Added to favorites ❤️');
+            }
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            loadFeed();
+        }
+
+        // ── Bootstrap ──────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            requireAuth();
+            setupLiveRecipeRefresh();
+            loadFeed();
+            loadMyFollowerCount();
+
+            // All-recipes filters
+            document.getElementById('applyFilters').addEventListener('click', () => {
+                activeFilters.time     = document.getElementById('timeFilter').value;
+                activeFilters.rating   = document.getElementById('ratingFilter').value;
+                activeFilters.comments = document.getElementById('commentFilter').value;
+                loadFeed(activeFilters.time, activeFilters.rating, activeFilters.comments);
+            });
+            document.getElementById('clearFilters').addEventListener('click', () => {
+                document.getElementById('timeFilter').value    = '';
+                document.getElementById('ratingFilter').value  = '';
+                document.getElementById('commentFilter').value = '';
+                activeFilters = { time: '', rating: '', comments: '' };
+                loadFeed();
+            });
+
+            // Following-tab filters
+            document.getElementById('fApplyFilters').addEventListener('click', () => {
+                activeFollowingFilters.time     = document.getElementById('fTimeFilter').value;
+                activeFollowingFilters.rating   = document.getElementById('fRatingFilter').value;
+                activeFollowingFilters.comments = document.getElementById('fCommentFilter').value;
+                loadFollowingFeed(activeFollowingFilters.time, activeFollowingFilters.rating, activeFollowingFilters.comments);
+            });
+            document.getElementById('fClearFilters').addEventListener('click', () => {
+                document.getElementById('fTimeFilter').value    = '';
+                document.getElementById('fRatingFilter').value  = '';
+                document.getElementById('fCommentFilter').value = '';
+                activeFollowingFilters = { time: '', rating: '', comments: '' };
+                loadFollowingFeed();
+            });
+        });
+    </script>
+    <div class="zestify-corner-logo" style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; opacity: 0.95; pointer-events: none;">
+        <img src="/uploads/Zestify.png" alt="Zestify Logo" style="pointer-events: auto;">
+    </div>
+
+</body>
+
+</html>
 
 <body>
 

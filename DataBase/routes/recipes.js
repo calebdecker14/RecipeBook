@@ -50,7 +50,8 @@ const {
     getRecipes,
     getRecipeById,
     getMyRecipes,
-    updateRecipe
+    updateRecipe,
+    getFollowingFeed
 } = require('../controllers/recipesController');
 
 // Controllers for comments
@@ -91,6 +92,9 @@ router.get('/', getRecipes);
 
 // Protected route to fetch only the current user's recipes (requires auth)
 router.get('/my', authenticateToken, getMyRecipes);
+
+// Protected route to fetch recipes from followed users (requires auth)
+router.get('/following', authenticateToken, getFollowingFeed);
 
 // Public route to fetch a single recipe by ID
 router.get('/:id', getRecipeById);
