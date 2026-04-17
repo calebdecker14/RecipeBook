@@ -17,17 +17,22 @@
     <div class="container">
         <h2>Edit Recipe</h2>
 
-        <!-- FORM (IMPORTANT) -->
         <form id="editRecipeForm">
 
-            <label>Title:</label><br>
-            <input type="text" id="title" placeholder="Recipe Title" required><br><br>
+            <label>Title (max 25):</label><br>
+            <input type="text" id="title" maxlength="25" required><br><br>
 
-            <label>Description:</label><br>
-            <textarea id="description" placeholder="Recipe Description" required></textarea><br><br>
+            <label>Description (max 800):</label><br>
+            <textarea id="description" maxlength="800" required></textarea><br><br>
 
             <label>Estimated Time:</label><br>
-            <input type="text" id="estimated_time" placeholder="e.g. 20 minutes"><br><br>
+            <input type="text" id="estimated_time" placeholder="e.g. 20"><br><br>
+
+            <label>Ingredients (comma separated):</label><br>
+            <textarea id="ingredients" placeholder="e.g. eggs, milk, flour"></textarea><br><br>
+
+            <label>Instructions:</label><br>
+            <textarea id="instructions" required></textarea><br><br>
 
             <button type="submit">Update Recipe</button>
 
@@ -40,15 +45,15 @@
         <div class="modal-content-shopping">
             <span class="shopping-close-btn">&times;</span>
             <h2>Shopping List</h2>
-            <textarea id="shopping-list-text" placeholder="Start typing..."></textarea>
-            <button id="save-shopping-btn" class="save-list-btn">Save Changes</button>
+            <textarea id="shopping-list-text"></textarea>
+            <button id="save-shopping-btn">Save Changes</button>
             <div id="save-status"></div>
         </div>
     </div>
 
     <script src="auth.js"></script>
     <script src="shopping.js"></script>
-    <script src="editRecipe.js"></script>
+    <script src="editRecipes.js"></script>
 
 </body>
 

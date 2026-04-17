@@ -53,6 +53,16 @@
             return `http://localhost:3000${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
         }
 
+        // 🔽 Expand/collapse
+        function toggleSection(btn) {
+            const section = btn.nextElementSibling;
+            section.classList.toggle("hidden");
+
+            btn.textContent = section.classList.contains("hidden")
+                ? btn.textContent.replace("▲", "▼")
+                : btn.textContent.replace("▼", "▲");
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             requireAuth();
             loadFavorites();
@@ -73,13 +83,30 @@
                 const card = document.createElement('div');
                 card.className = 'card';
 
+                // 🔽 INGREDIENTS
+                let ingredientsHTML = "";
+                if (recipe.ingredients && recipe.ingredients.length > 0) {
+                    ingredientsHTML = recipe.ingredients.map((i, index) => `
+                        <label>
+                            <input type="checkbox" />
+                            ${i.amount || ""} ${i.name || ""}
+                        </label><br/>
+                    `).join("");
+                } else {
+                    ingredientsHTML = "<p>No ingredients listed</p>";
+                }
+
+                // 🔽 INSTRUCTIONS
+                let instructionsHTML = recipe.instructions
+                    ? `<p>${recipe.instructions.replace(/\n/g, "<br/>")}</p>`
+                    : "<p>No instructions provided</p>";
+
                 let inner = `<h3>${recipe.title}</h3>`;
 
                 if (recipe.image_url) {
                     inner += `
                         <img src="${resolveImageUrl(recipe.image_url)}" 
-                             alt="Recipe image" 
-                             style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;">
+                            style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;">
                     `;
                 } else {
                     inner += `<p><em>No Picture Uploaded</em></p>`;
@@ -90,6 +117,19 @@
                 if (recipe.estimated_time) {
                     inner += `<p><strong>Time:</strong> ${recipe.estimated_time}</p>`;
                 }
+
+                // 🔽 NEW EXPANDABLE SECTIONS
+                inner += `
+                    <button onclick="toggleSection(this)">Ingredients ▼</button>
+                    <div class="section-content hidden">
+                        ${ingredientsHTML}
+                    </div>
+
+                    <button onclick="toggleSection(this)">Instructions ▼</button>
+                    <div class="section-content hidden">
+                        ${instructionsHTML}
+                    </div>
+                `;
 
                 inner += `
                     <button onclick="removeFavorite(${recipe.id})">
