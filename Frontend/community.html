@@ -90,10 +90,33 @@
             sec.classList.toggle("hidden");
         }
 
+        // ───────────────────────── Toggle Favorite
+        function toggleFavorite(recipe, event) {
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const index = favorites.findIndex(f => f.id === recipe.id);
+
+            if (index !== -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(recipe);
+            }
+
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+
+            // Update the button appearance immediately
+            const favBtn = event.target;
+            const isNowFavorited = favorites.some(f => f.id === recipe.id);
+            favBtn.textContent = isNowFavorited ? '❤️' : '🤍';
+        }
+
         // ───────────────────────── Build Card
         function buildRecipeCard(r) {
             const card = document.createElement("div");
             card.className = "card";
+
+            // Check if recipe is favorited
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const isFavorited = favorites.some(f => f.id === r.id);
 
             card.innerHTML = `
         <h3>${r.title}</h3>
@@ -118,6 +141,13 @@
             ${r.instructions || ""}
         </div>
     `;
+
+            // Add favorite button
+            const favBtn = document.createElement('button');
+            favBtn.className = 'favorite-heart';
+            favBtn.textContent = isFavorited ? '❤️' : '🤍';
+            favBtn.onclick = (event) => toggleFavorite(r, event);
+            card.appendChild(favBtn);
 
             return card;
         }

@@ -197,18 +197,18 @@
         <div class="section-content hidden">${escapeHtml(r.instructions || '')}</div>
     `;
 
-            const actions = document.createElement('div');
-            actions.className = 'recipe-actions';
-
-            /* FAVORITE */
+            /* FAVORITE - positioned right after instructions */
             const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
             const isFavorited = favorites.some(f => f.id === r.id);
 
             const favBtn = document.createElement('button');
             favBtn.className = 'favorite-heart';
             favBtn.textContent = isFavorited ? '❤️' : '🤍';
-            favBtn.onclick = () => toggleFavorite(r);
-            actions.appendChild(favBtn);
+            favBtn.onclick = (event) => toggleFavorite(r, event);
+            card.appendChild(favBtn);
+
+            const actions = document.createElement('div');
+            actions.className = 'recipe-actions';
 
             /* EDIT */
             const editBtn = document.createElement('button');
@@ -236,7 +236,7 @@
         }
 
         /* ---------------- FAVORITES ---------------- */
-        function toggleFavorite(recipe) {
+        function toggleFavorite(recipe, event) {
             let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
             const index = favorites.findIndex(f => f.id === recipe.id);
 
@@ -247,7 +247,11 @@
             }
 
             localStorage.setItem('favorites', JSON.stringify(favorites));
-            loadFeed();
+
+            // Update the button appearance immediately without refreshing the feed
+            const favBtn = event.target;
+            const isNowFavorited = favorites.some(f => f.id === recipe.id);
+            favBtn.textContent = isNowFavorited ? '❤️' : '🤍';
         }
 
         /* ---------------- DELETE ---------------- */
