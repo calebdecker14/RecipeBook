@@ -1,15 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db/pool");
-const authenticateToken = require("../middleware/authMiddleware");
+const { authenticateToken } = require("../middleware/authMiddleware");
 
-// Save a meal to a specific day
+// ---------------------- SAVE MEAL ----------------------
 router.post("/", authenticateToken, async (req, res) => {
   try {
     const { recipeId, date } = req.body;
     const userId = req.user.id;
 
-    const result = await pool.query(
+    const [result] = await pool.query(
       "INSERT INTO meal_plans (user_id, recipe_id, date) VALUES (?, ?, ?)",
       [userId, recipeId, date]
     );
@@ -25,35 +25,40 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 });
 
-// Load all meals for logged-in user
+// ---------------------- LOAD MEALS FOR USER ----------------------
 router.get("/my", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const rows = await pool.query(
-      `SELECT mp.id, mp.date, r.id AS recipeId, r.title, r.image
+    const [rows] = await pool.query(
+      `SELECT 
+          mp.id, 
+          mp.date, 
+          r.id AS recipeId, 
+          r.title, 
+          r.image_url AS imageUrl
        FROM meal_plans mp
        JOIN recipes r ON mp.recipe_id = r.id
        WHERE mp.user_id = ?`,
       [userId]
     );
 
-    res.json(rows);
+    res.json(rows);  // returns a clean array
   } catch (err) {
     console.error("Error loading meals:", err);
     res.status(500).json({ error: "Failed to load meal plan" });
   }
 });
 
-// Delete a meal from a day
-router.delete("/:id", authenticateToken, async (req, res) => {
+// ---------------------- DELETE MEAL ----------------------
+router.delete("/", authenticateToken, async (req, res) => {
   try {
-    const mealId = req.params.id;
+    const { date, recipeId } = req.body;
     const userId = req.user.id;
 
     await pool.query(
-      "DELETE FROM meal_plans WHERE id = ? AND user_id = ?",
-      [mealId, userId]
+      "DELETE FROM meal_plans WHERE user_id = ? AND recipe_id = ? AND date = ?",
+      [userId, recipeId, date]
     );
 
     res.json({ success: true });

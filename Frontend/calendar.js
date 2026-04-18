@@ -12,7 +12,7 @@ window.allRecipes = [];
 // -------- INITIALIZE PAGE --------
 document.addEventListener("DOMContentLoaded", () => {
     generateCalendar();
-    loadRecipes();
+    loadRecipes(); // <-- recipes load FIRST, then saved meals load inside loadRecipes()
     setupSearch();
 
     const prevBtn = document.getElementById("prevMonth");
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentYear--;
             }
             generateCalendar();
-            loadSavedMealPlan();
+            loadSavedMealPlan(); // <-- safe now because recipes are already loaded
         });
 
         nextBtn.addEventListener("click", () => {
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentYear++;
             }
             generateCalendar();
-            loadSavedMealPlan();
+            loadSavedMealPlan(); // <-- safe now
         });
     }
 });
@@ -111,7 +111,7 @@ async function loadRecipes() {
         const response = await fetch("http://localhost:3000/recipes");
         const recipes = await response.json();
 
-        window.allRecipes = recipes;
+        window.allRecipes = recipes; // <-- store recipes BEFORE loading saved meals
         recipeList.innerHTML = "";
 
         recipes.forEach(recipe => {
@@ -135,6 +135,7 @@ async function loadRecipes() {
             recipeList.appendChild(item);
         });
 
+        // NOW load saved meals (recipes are ready)
         loadSavedMealPlan();
 
     } catch (error) {
@@ -219,7 +220,10 @@ async function saveMealPlan(date, recipeId) {
     try {
         await fetch("http://localhost:3000/mealplan", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
             body: JSON.stringify({ date, recipeId })
         });
     } catch (error) {
@@ -232,7 +236,10 @@ async function deleteMealPlan(date, recipeId) {
     try {
         await fetch("http://localhost:3000/mealplan", {
             method: "DELETE",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
             body: JSON.stringify({ date, recipeId })
         });
     } catch (error) {
@@ -243,7 +250,12 @@ async function deleteMealPlan(date, recipeId) {
 // -------- LOAD SAVED MEAL PLAN FOR CURRENT USER --------
 async function loadSavedMealPlan() {
     try {
-        const res = await fetch("http://localhost:3000/mealplan/my");
+        const res = await fetch("http://localhost:3000/mealplan/my", {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            }
+        });
+
         const saved = await res.json();
 
         const year = currentYear;
