@@ -106,7 +106,7 @@
         <p><strong>Rating:</strong> ${(parseFloat(r.average_rating) || 0).toFixed(1)} ⭐</p>
         <p><strong>Comments:</strong> ${r.comment_count || 0}</p>
 
-        ${r.image_url ? `<img src="${API_BASE_URL + r.image_url}" style="max-width:200px;">` : ""}
+        <img src="${API_BASE_URL + (r.image_url || '/uploads/placeholder.png')}" style="max-width:200px;">
 
         <button class="recipe-section-btn" onclick="toggleSection(this)">Ingredients</button>
         <div class="section-content hidden">

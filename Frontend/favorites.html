@@ -103,14 +103,10 @@
 
                 let inner = `<h3>${recipe.title}</h3>`;
 
-                if (recipe.image_url) {
-                    inner += `
-                        <img src="${resolveImageUrl(recipe.image_url)}" 
-                            style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;">
-                    `;
-                } else {
-                    inner += `<p><em>No Picture Uploaded</em></p>`;
-                }
+                inner += `
+                    <img src="${resolveImageUrl(recipe.image_url || '/uploads/placeholder.png')}" 
+                        style="max-width:200px; max-height:200px; display:block; margin-bottom:10px;">
+                `;
 
                 inner += `<p>${recipe.description}</p>`;
 

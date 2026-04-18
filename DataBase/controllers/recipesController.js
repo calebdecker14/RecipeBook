@@ -22,7 +22,7 @@ exports.createRecipe = async (req, res) => {
         }
 
         const user_id = req.user ? req.user.id : null;
-        const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+        const image_url = req.file ? `/uploads/${req.file.filename}` : '/uploads/placeholder.png';
 
         const sql = `
             INSERT INTO recipes (user_id, title, description, estimated_time, image_url, ingredients, instructions)

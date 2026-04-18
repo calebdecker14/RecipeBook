@@ -97,7 +97,7 @@ function generateCalendar() {
 
 // -------- IMAGE URL FIXER --------
 function resolveImageUrl(imageUrl) {
-    if (!imageUrl) return "";
+    if (!imageUrl) return "http://localhost:3000/uploads/placeholder.png";
     if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
     return `http://localhost:3000${imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`}`;
 }

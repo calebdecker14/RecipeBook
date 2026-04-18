@@ -179,9 +179,8 @@
             const card = document.createElement('div');
             card.className = 'card';
 
-            const imageHtml = r.image_url
-                ? `<img src="${API_BASE_URL}${r.image_url}" style="max-width:200px;">`
-                : '';
+            const imageSrc = r.image_url || '/uploads/placeholder.png';
+            const imageHtml = `<img src="${API_BASE_URL}${imageSrc}" style="max-width:200px;">`;
 
             card.innerHTML = `
         <h3>${escapeHtml(r.title)}</h3>

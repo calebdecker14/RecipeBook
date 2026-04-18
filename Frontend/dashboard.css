@@ -215,10 +215,22 @@ nav,
 }
 
 .recipe-grid {
+    overflow: hidden;
+    padding: 20px 0;
+    position: relative;
+}
+
+.recipe-carousel {
+    display: flex;
+    transition: transform 0.8s ease-in-out;
+}
+
+.recipe-slide {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 25px;
-    padding: 20px 0;
+    width: 100%; /* Each slide takes full width of the visible area */
+    flex-shrink: 0;
 }
 
 .recipe-card {

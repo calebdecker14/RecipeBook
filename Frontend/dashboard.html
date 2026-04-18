@@ -76,7 +76,7 @@
     <script>
 
 function resolveImageUrl(imageUrl) {
-    if (!imageUrl) return '';
+    if (!imageUrl) return 'http://localhost:3000/uploads/placeholder.png';
     if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
     return `http://localhost:3000${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
 }
@@ -85,6 +85,13 @@ function resolveImageUrl(imageUrl) {
     requireAuth();
     loadDashboardAnalytics();
     loadFeaturedRecipes();
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (rotationInterval) {
+        clearInterval(rotationInterval);
+    }
 });
 
 async function loadDashboardAnalytics() {
@@ -118,15 +125,99 @@ async function loadDashboardAnalytics() {
 async function loadFeaturedRecipes() {
     try {
         const res = await fetch("http://localhost:3000/recipes");
-        const recipes = await res.json();
+        const allRecipes = await res.json();
 
-        // Shuffle + take 3
-        const selected = recipes.sort(() => Math.random() - 0.5).slice(0, 3);
+        // Get 9 random recipes (3 sets of 3)
+        const shuffled = allRecipes.sort(() => Math.random() - 0.5);
+        const selectedRecipes = shuffled.slice(0, 9);
 
         const container = document.getElementById("featured-recipes");
         container.innerHTML = "";
 
-        selected.forEach(r => {
+        // Create carousel container
+        const carousel = document.createElement("div");
+        carousel.className = "recipe-carousel";
+        container.appendChild(carousel);
+
+        // Create three slides
+        for (let slideIndex = 0; slideIndex < 3; slideIndex++) {
+            const slide = document.createElement("div");
+            slide.className = "recipe-slide";
+
+            const startIndex = slideIndex * 3;
+            const slideRecipes = selectedRecipes.slice(startIndex, startIndex + 3);
+
+            slideRecipes.forEach(r => {
+                const card = document.createElement("div");
+                card.className = "recipe-card";
+
+                card.innerHTML = `
+                    <img src="${resolveImageUrl(r.image_url)}" alt="Recipe Image">
+                    <h3>${r.title}</h3>
+                    <p>${r.description.substring(0, 80)}...</p>
+                `;
+
+                card.onclick = () => {
+                    window.location.href = 'community.html';
+                };
+
+                slide.appendChild(card);
+            });
+
+            carousel.appendChild(slide);
+        }
+
+        // Start rotation
+        startRecipeRotation();
+
+    } catch (err) {
+        console.error("Error loading featured recipes:", err);
+    }
+}
+
+// Global variable to store rotation interval
+let rotationInterval;
+
+function startRecipeRotation() {
+    let currentSlide = 0;
+    const carousel = document.querySelector('.recipe-carousel');
+    const totalSlides = 3;
+
+    // Set initial position
+    carousel.style.transform = 'translateX(0)';
+
+    rotationInterval = setInterval(() => {
+        currentSlide = (currentSlide + 1) % totalSlides;
+
+        // Add sliding animation - move by 100% each slide since each slide is full width
+        carousel.style.transition = 'transform 0.8s ease-in-out';
+        carousel.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+        // Load new recipes for the next cycle when we reach the last slide
+        if (currentSlide === totalSlides - 1) {
+            setTimeout(() => {
+                loadNewRecipesForRotation();
+            }, 800); // Wait for animation to complete
+        }
+    }, 5000);
+}
+
+async function loadNewRecipesForRotation() {
+    try {
+        const res = await fetch("http://localhost:3000/recipes");
+        const allRecipes = await res.json();
+
+        // Get 3 new random recipes
+        const shuffled = allRecipes.sort(() => Math.random() - 0.5);
+        const newRecipes = shuffled.slice(0, 3);
+
+        const carousel = document.querySelector('.recipe-carousel');
+        const firstSlide = carousel.children[0];
+
+        // Update the first slide with new recipes (which will become visible after rotation)
+        firstSlide.innerHTML = '';
+
+        newRecipes.forEach(r => {
             const card = document.createElement("div");
             card.className = "recipe-card";
 
@@ -140,11 +231,11 @@ async function loadFeaturedRecipes() {
                 window.location.href = 'community.html';
             };
 
-            container.appendChild(card);
+            firstSlide.appendChild(card);
         });
 
     } catch (err) {
-        console.error("Error loading featured recipes:", err);
+        console.error("Error loading new recipes for rotation:", err);
     }
 }
 
