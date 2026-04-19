@@ -1,0 +1,564 @@
+/* GLOBAL FONT */
+html,
+body {
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+/* NAVBAR */
+nav {
+    background-color: rgba(255, 235, 120, 0.55);
+    /* soft yellow tint */
+    backdrop-filter: blur(10px);
+    padding: 18px 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    border-radius: 0 0 20px 20px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav>div:first-child {
+    display: flex;
+    gap: 30px;
+}
+
+nav a {
+    font-size: 18px;
+    font-weight: 500;
+    color: #1a1a1a;
+    text-decoration: none;
+}
+
+nav a:hover {
+    opacity: 0.7;
+    transition: 0.2s ease;
+}
+
+/* PROFILE MENU */
+#profile-menu {
+    position: relative;
+    display: inline-block;
+}
+
+/* Account Settings button */
+#profile-btn {
+    background: #6FB34A;
+    color: rgb(0, 0, 0);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Create Recipe button - Outline style */
+#showCreate {
+    border-radius: 18px;
+    padding: 24px 26px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border: 2px solid #cbd5e1;
+    color: #1e293b;
+    background: #ffffff;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    display: block;
+    margin: 40px auto;
+}
+
+#showCreate:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.03);
+}
+
+.danger {
+    color: red;
+}
+
+/* FULL PAGE BACKGROUND */
+body {
+    background-image: url('uploads/lemon-background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle, transparent 50%, rgba(0, 0, 0, 0.30));
+    pointer-events: none;
+}
+
+
+/* SECTION TITLE */
+.section-title {
+    text-align: center;
+    font-size: 32px;
+    margin-top: 40px;
+    margin-bottom: 25px;
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+}
+
+.zestify-corner-logo {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 99999 !important;
+    opacity: 0.95 !important;
+    transition: opacity 0.2s ease-in-out !important;
+    pointer-events: none !important;
+}
+
+.zestify-corner-logo img {
+    width: 70px;
+    height: auto;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
+    border-radius: 10px;
+    pointer-events: auto;
+}
+
+.zestify-corner-logo:hover {
+    opacity: 1;
+}
+
+/* HERO */
+.hero {
+    width: 100%;
+    height: 380px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(4px);
+    border-radius: 0 0 25px 25px;
+    margin-bottom: 40px;
+    background: linear-gradient(rgba(0, 0, 0, 0.15),
+            rgba(0, 0, 0, 0.15));
+}
+
+.hero-title {
+    font-size: 72px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: white;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+
+
+
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 20px;
+    background: rgba(20, 20, 20, 0.22);
+    backdrop-filter: blur(6px);
+    border-radius: 25px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+
+
+/* My Recipes header */
+h1 {
+    text-align: center;
+    font-size: 72px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: white;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+    margin-bottom: 16px;
+}
+
+/* Recipes grid layout */
+#feed,
+#favorites-feed {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+#feed.team-feed {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#feed.recipes-feed {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#feed.community-feed {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#favorites-feed.favorites-feed {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+    #feed.team-feed {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #feed.recipes-feed {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #feed.community-feed {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #favorites-feed.favorites-feed {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    #feed.team-feed {
+        grid-template-columns: 1fr;
+    }
+
+    #feed.recipes-feed {
+        grid-template-columns: 1fr;
+    }
+
+    #feed.community-feed {
+        grid-template-columns: 1fr;
+    }
+
+    #favorites-feed.favorites-feed {
+        grid-template-columns: 1fr;
+    }
+}
+
+.nav-search {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.nav-search input,
+#recipe-search {
+    width: min(90%, 520px);
+    max-width: 520px;
+    padding: 10px 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.recipe-card,
+.card {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(6px);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-width: 0;
+    width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.team-photo {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.recipe-card:hover,
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+/* Favorite button */
+.favorite-heart {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    display: block;
+    margin: 10px auto 0 auto;
+    transition: transform 0.2s ease;
+}
+
+.favorite-heart:hover {
+    transform: scale(1.2);
+}
+
+/* Comment modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+.modal-content {
+    width: min(95%, 520px);
+    max-height: 84vh;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(5px);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    position: relative;
+    margin: auto;
+}
+
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.comment-list {
+    margin: 10px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+.comment-item {
+    background: rgba(240, 240, 240, 0.9);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+#commentInput {
+    width: 100%;
+    min-height: 80px;
+    margin-bottom: 10px;
+    resize: vertical;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+#commentSubmitButton {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#commentSubmitButton:hover {
+    background: #45a049;
+}
+
+/* ===== EXPANDABLE SECTIONS (Ingredients / Instructions) ===== */
+
+.section-content.hidden {
+    display: none;
+}
+
+.section-content {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.65);
+    border-radius: 10px;
+}
+
+/* Buttons for expand/collapse */
+.recipe button {
+    margin-top: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+    background-color: #6FB34A;
+    color: black;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.recipe button:hover {
+    background-color: #5aa63b;
+    transform: scale(1.03);
+}
+
+/* Ingredient checkboxes */
+.section-content label {
+    display: block;
+    margin-bottom: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Improve recipe card spacing */
+.recipe {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(6px);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 1. Recipe Section Buttons (Ingredients/Instructions) */
+.recipe-section-btn {
+    background-color: #6FB34A; /* Matching your existing green */
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 12px auto 0 auto;
+    display: block;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.recipe-section-btn:hover {
+    background-color: #5aa63b; /* Slightly darker on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.recipe-section-btn:active {
+    transform: translateY(0);
+}
+
+/* 2. Author "Badge" Button */
+.author-btn {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px; /* Pill shape */
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.author-btn:hover {
+    border-color: #6FB34A;
+    color: #6FB34A;
+}
+
+/* 3. Tab Bar Styling */
+.tab-bar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
+}
+
+.tab-bar button {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.3s, transform 0.2s;
+}
+
+.tab-bar button.active {
+    opacity: 1;
+    border-bottom: 3px solid #6FB34A;
+    padding-bottom: 7px;
+}
+
+.tab-bar button:hover {
+    opacity: 1;
+}
+
+/* 4. Search Input Focus */
+#recipe-search:focus, #following-search:focus {
+    outline: none;
+    border: 2px solid #6FB34A;
+    box-shadow: 0 0 8px rgba(111, 179, 74, 0.4);
+}
+
+/* 1. Pin the heart to the top right */
+.card {
+    position: relative; /* This allows the heart to anchor to the card corner */
+}
+
+.favorite-heart {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    margin: 0; /* Remove the auto margins we had before */
+    z-index: 10;
+}
+
+/* 2. Put Ingredients and Instructions on one line */
+/* We target the buttons that are direct children of the card but NOT in the action div */
+.card > .recipe-section-btn {
+    display: inline-block; 
+    width: auto;
+    margin: 10px 5px 0 0; /* Adds a little gap between them */
+}
+
+/* 3. Put Edit, Delete, and Rate on their own line */
+.recipe-actions {
+    display: flex;
+    justify-content: center; /* Centers the row of buttons */
+    gap: 8px;               /* Space between the buttons */
+    margin-top: 15px;       /* Pushes the row down slightly */
+    width: 100%;
+}
+
+.recipe-actions button {
+    flex: 1;                /* Makes all three buttons the same width */
+    margin: 0;              /* Removes old block margins */
+    padding: 8px 4px;       /* Slims them down to fit side-by-side */
+    font-size: 12px;        /* Smaller font so they don't wrap on mobile */
+}
+
+.stars {
+    color: #ffcc00; /* Gold color */
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+}
