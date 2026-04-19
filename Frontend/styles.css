@@ -519,3 +519,40 @@ h1 {
     border: 2px solid #6FB34A;
     box-shadow: 0 0 8px rgba(111, 179, 74, 0.4);
 }
+
+/* 1. Pin the heart to the top right */
+.card {
+    position: relative; /* This allows the heart to anchor to the card corner */
+}
+
+.favorite-heart {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    margin: 0; /* Remove the auto margins we had before */
+    z-index: 10;
+}
+
+/* 2. Put Ingredients and Instructions on one line */
+/* We target the buttons that are direct children of the card but NOT in the action div */
+.card > .recipe-section-btn {
+    display: inline-block; 
+    width: auto;
+    margin: 10px 5px 0 0; /* Adds a little gap between them */
+}
+
+/* 3. Put Edit, Delete, and Rate on their own line */
+.recipe-actions {
+    display: flex;
+    justify-content: center; /* Centers the row of buttons */
+    gap: 8px;               /* Space between the buttons */
+    margin-top: 15px;       /* Pushes the row down slightly */
+    width: 100%;
+}
+
+.recipe-actions button {
+    flex: 1;                /* Makes all three buttons the same width */
+    margin: 0;              /* Removes old block margins */
+    padding: 8px 4px;       /* Slims them down to fit side-by-side */
+    font-size: 12px;        /* Smaller font so they don't wrap on mobile */
+}

@@ -5,39 +5,6 @@
     <title>My Recipes</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="shopping-list.css">
-
-    <style>
-        .section-content.hidden {
-            display: none;
-        }
-
-        .section-content {
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.65);
-            border-radius: 10px;
-        }
-
-        .ingredient-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .favorite-heart {
-            font-size: 22px;
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-
-        .recipe-actions {
-            margin-top: 10px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-    </style>
 </head>
 
 <body>
@@ -48,16 +15,21 @@
             <a href="recipes.html">My Recipes</a>
             <a href="favorites.html">Favorites</a>
             <a href="community.html">Community</a>
+            <a href="calendar.html">Calendar</a>
+            <a href="aboutus.html">About Us</a>
+        </div>
+
+        <div>
+            <button onclick="window.location.href='profile.html'">Account</button>
         </div>
     </nav>
 
     <div class="container">
         <h1>My Recipes</h1>
 
-        <button id="showCreate">🍋 Upload Recipe 🍋</button>
+        <button id="showCreate" class="recipe-section-btn">🍋 Upload Recipe 🍋</button>
         <input type="text" id="recipe-search" placeholder="Search recipes..." onkeyup="filterRecipes()">
 
-        <!-- CREATE FORM -->
         <div id="createForm" class="card" style="display:none;">
             <form id="recipeForm" enctype="multipart/form-data">
                 <input type="text" id="title" placeholder="Title" required>
@@ -66,7 +38,7 @@
 
                 <h4>Ingredients</h4>
                 <div id="ingredientsContainer"></div>
-                <button type="button" id="addIngredientBtn">+ Add Ingredient</button>
+                <button type="button" id="addIngredientBtn" class="recipe-section-btn">+ Add Ingredient</button>
 
                 <h4>Instructions</h4>
                 <textarea id="instructions" required></textarea>
@@ -74,13 +46,34 @@
                 <input type="file" id="image" accept="image/*">
                 <div id="imagePreview"></div>
 
-                <button type="submit">Submit</button>
-                <button type="button" id="cancelCreate">Cancel</button>
+                <button type="submit" class="recipe-section-btn">Submit</button>
+                <button type="button" id="cancelCreate" class="recipe-section-btn" style="background-color: #6c757d;">Cancel</button>
             </form>
         </div>
 
         <div id="feed"></div>
     </div>
+
+      </div>
+
+    <button id="shopping-list-btn" class="shopping-list-btn">🛒</button>
+
+    <div id="shopping-modal" class="shopping-modal-overlay">
+        <div class="modal-content-shopping">
+            <span class="shopping-close-btn">&times;</span>
+            <h2>Shopping List</h2>
+            <textarea id="shopping-list-text" placeholder="Start typing..."></textarea>
+            <button id="save-shopping-btn" class="save-list-btn">Save Changes</button>
+            <div id="save-status"></div>
+        </div>
+    </div>
+
+    <script src="calendar.js"></script>
+    <script src="shopping.js"></script>
+
+    <div class="zestify-corner-logo">
+    <img src="../uploads/Zestify.png" alt="Zestify Logo">
+</div>
 
     <script>
         const API_BASE_URL = 'http://localhost:3000';
@@ -107,10 +100,10 @@
             row.className = 'ingredient-row';
 
             row.innerHTML = `
-        <input class="ingredient-name" placeholder="Ingredient" value="${escapeHtml(name)}">
-        <input class="ingredient-amount" placeholder="Amount" value="${escapeHtml(amount)}">
-        <button type="button">X</button>
-    `;
+                <input class="ingredient-name" placeholder="Ingredient" value="${escapeHtml(name)}">
+                <input class="ingredient-amount" placeholder="Amount" value="${escapeHtml(amount)}">
+                <button type="button" style="background:none; border:none; color:red; cursor:pointer;">X</button>
+            `;
 
             row.querySelector('button').onclick = () => row.remove();
             ingredientsContainer.appendChild(row);
@@ -183,21 +176,20 @@
             const imageHtml = `<img src="${API_BASE_URL}${imageSrc}" style="max-width:200px;">`;
 
             card.innerHTML = `
-        <h3>${escapeHtml(r.title)}</h3>
-        ${imageHtml}
-        <p>${escapeHtml(r.description)}</p>
-        <p><strong>Time:</strong> ${escapeHtml(r.estimated_time || '')}</p>
+                <h3>${escapeHtml(r.title)}</h3>
+                ${imageHtml}
+                <p>${escapeHtml(r.description)}</p>
+                <p><strong>Time:</strong> ${escapeHtml(r.estimated_time || '')}</p>
 
-        <button onclick="toggleSection(this)">Ingredients</button>
-        <div class="section-content hidden">
-            ${(r.ingredients || []).map(i => `${escapeHtml(i.amount)} ${escapeHtml(i.name)}`).join('<br>')}
-        </div>
+                <button class="recipe-section-btn" onclick="toggleSection(this)">Ingredients</button>
+                <div class="section-content hidden">
+                    ${(r.ingredients || []).map(i => `${escapeHtml(i.amount)} ${escapeHtml(i.name)}`).join('<br>')}
+                </div>
 
-        <button onclick="toggleSection(this)">Instructions</button>
-        <div class="section-content hidden">${escapeHtml(r.instructions || '')}</div>
-    `;
+                <button class="recipe-section-btn" onclick="toggleSection(this)">Instructions</button>
+                <div class="section-content hidden">${escapeHtml(r.instructions || '')}</div>
+            `;
 
-            /* FAVORITE - positioned right after instructions */
             const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
             const isFavorited = favorites.some(f => f.id === r.id);
 
@@ -212,6 +204,7 @@
 
             /* EDIT */
             const editBtn = document.createElement('button');
+            editBtn.className = 'recipe-section-btn';
             editBtn.textContent = 'Edit';
             editBtn.onclick = () => {
                 window.location.href = `editRecipe.html?id=${r.id}`;
@@ -220,12 +213,15 @@
 
             /* DELETE */
             const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'recipe-section-btn';
             deleteBtn.textContent = 'Delete';
+            deleteBtn.style.backgroundColor = '#ff6b6b'; // Keep it red for warning
             deleteBtn.onclick = () => deleteRecipe(r.id);
             actions.appendChild(deleteBtn);
 
             /* RATE */
             const rateBtn = document.createElement('button');
+            rateBtn.className = 'recipe-section-btn';
             rateBtn.textContent = 'Rate';
             rateBtn.onclick = () => rateRecipe(r.id);
             actions.appendChild(rateBtn);
@@ -247,8 +243,6 @@
             }
 
             localStorage.setItem('favorites', JSON.stringify(favorites));
-
-            // Update the button appearance immediately without refreshing the feed
             const favBtn = event.target;
             const isNowFavorited = favorites.some(f => f.id === recipe.id);
             favBtn.textContent = isNowFavorited ? '❤️' : '🤍';
