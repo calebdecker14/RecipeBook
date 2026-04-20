@@ -205,6 +205,8 @@
 
             document.getElementById('modal-favorite-btn').onclick = (event) => toggleFavorite(recipe, event);
             document.getElementById('modal-edit-btn').onclick = () => {
+                sessionStorage.setItem('editingRecipeId', String(recipe.id));
+                sessionStorage.setItem('editingRecipeData', JSON.stringify(recipe));
                 window.location.href = `editRecipe.html?id=${recipe.id}`;
             };
             document.getElementById('modal-delete-btn').onclick = async () => {
@@ -361,6 +363,8 @@
             editBtn.textContent = 'Edit';
             editBtn.onclick = (event) => {
                 event.stopPropagation();
+                sessionStorage.setItem('editingRecipeId', String(r.id));
+                sessionStorage.setItem('editingRecipeData', JSON.stringify(r));
                 window.location.href = `editRecipe.html?id=${r.id}`;
             };
             actions.appendChild(editBtn);

@@ -201,6 +201,10 @@ body::before {
     pointer-events: none;
 }
 
+.hidden {
+    display: none !important;
+}
+
 
 /* SECTION TITLE */
 .section-title {
@@ -271,6 +275,326 @@ body::before {
     border-radius: 25px;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
     border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.edit-recipe-container {
+    width: min(96%, 1260px);
+    max-width: 1260px;
+    padding: 28px;
+}
+
+.edit-recipe-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.edit-recipe-kicker {
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255, 249, 196, 0.95);
+}
+
+.edit-recipe-hero h1 {
+    margin: 0;
+    font-size: clamp(36px, 6vw, 58px);
+    line-height: 0.95;
+}
+
+.edit-recipe-subtitle {
+    margin: 12px 0 0;
+    max-width: 620px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.86);
+}
+
+.edit-back-link,
+.edit-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.edit-back-link {
+    padding: 12px 18px;
+    color: #18311f;
+    background: rgba(255, 248, 220, 0.95);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.edit-recipe-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 980px;
+    margin: 0 auto;
+    gap: 22px;
+    align-items: start;
+}
+
+.edit-recipe-form,
+.edit-recipe-sidebar {
+    cursor: default;
+}
+
+.edit-recipe-form:hover,
+.edit-recipe-sidebar:hover {
+    transform: none;
+}
+
+.edit-recipe-form {
+    padding: 28px;
+}
+
+.edit-form-status {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.edit-form-status.is-success {
+    background: rgba(220, 252, 231, 0.95);
+    color: #166534;
+    border-color: rgba(134, 239, 172, 0.9);
+}
+
+.edit-form-status.is-error {
+    background: rgba(254, 226, 226, 0.96);
+    color: #991b1b;
+    border-color: rgba(252, 165, 165, 0.95);
+}
+
+.edit-form-status.is-saving {
+    background: rgba(254, 249, 195, 0.96);
+    color: #854d0e;
+    border-color: rgba(253, 224, 71, 0.9);
+}
+
+.edit-form-section + .edit-form-section {
+    margin-top: 24px;
+}
+
+.edit-form-section-header {
+    margin-bottom: 14px;
+}
+
+.edit-form-section-header h2,
+.edit-form-section-header h3 {
+    margin: 0;
+    color: #163020;
+}
+
+.edit-form-section-header p {
+    margin: 6px 0 0;
+    color: rgba(24, 49, 31, 0.72);
+    line-height: 1.5;
+}
+
+.edit-form-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.edit-form-grid-2col {
+    grid-template-columns: minmax(0, 1.3fr) minmax(180px, 0.7fr);
+}
+
+.edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.edit-field-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #18311f;
+}
+
+.edit-field-count,
+.edit-field-hint {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(24, 49, 31, 0.6);
+}
+
+.edit-recipe-form input[type="text"],
+.edit-recipe-form textarea {
+    width: 100%;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    border-radius: 14px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #1f2937;
+    font-size: 15px;
+    line-height: 1.5;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.edit-recipe-form textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.edit-recipe-form input[type="text"]:focus,
+.edit-recipe-form textarea:focus {
+    outline: none;
+    border-color: #6FB34A;
+    box-shadow: 0 0 0 4px rgba(111, 179, 74, 0.18);
+    transform: translateY(-1px);
+}
+
+.edit-form-actions {
+    margin-top: 28px;
+    align-items: center;
+}
+
+.edit-secondary-action {
+    min-width: 120px;
+    padding: 10px 16px;
+    color: #334155;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(203, 213, 225, 0.95);
+}
+
+.edit-form-actions .recipe-section-btn {
+    min-width: 148px;
+    padding-inline: 22px;
+}
+
+.edit-recipe-sidebar {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.edit-sidebar-block {
+    padding: 18px;
+    border-radius: 18px;
+    background: rgba(255, 252, 245, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+}
+
+.edit-preview-label {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #5f7a2d;
+}
+
+.edit-preview-title {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.05;
+    color: #19331d;
+}
+
+.edit-preview-description {
+    margin: 12px 0 0;
+    color: rgba(24, 49, 31, 0.78);
+    line-height: 1.6;
+}
+
+.edit-preview-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.edit-preview-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(111, 179, 74, 0.14);
+    color: #315324;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.edit-preview-list {
+    margin: 14px 0 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: #18311f;
+}
+
+.edit-preview-list li {
+    line-height: 1.5;
+}
+
+.edit-tip-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.edit-tip-list p {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(111, 179, 74, 0.1);
+    color: #264023;
+    line-height: 1.5;
+}
+
+@media (max-width: 960px) {
+    .edit-recipe-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-recipe-hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    .edit-recipe-container {
+        width: calc(100% - 24px);
+        padding: 20px 16px;
+    }
+
+    .edit-recipe-form,
+    .edit-recipe-sidebar {
+        padding: 18px;
+    }
+
+    .edit-form-grid-2col {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .edit-secondary-action,
+    .edit-form-actions .recipe-section-btn {
+        width: 100%;
+        text-align: center;
+    }
 }
 
 
