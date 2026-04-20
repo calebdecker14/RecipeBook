@@ -281,9 +281,15 @@ exports.getMyRecipes = async (req, res) => {
                 r.estimated_time,
                 r.image_url,
                 r.created_at,
-                r.updated_at
+                r.updated_at,
+                u.id AS author_id,
+                u.username AS author,
+                COALESCE(AVG(rt.rating), 0) AS average_rating
             FROM recipes r
+            LEFT JOIN users u ON u.id = r.user_id
+            LEFT JOIN ratings rt ON rt.recipe_id = r.id
             WHERE r.user_id = ?
+            GROUP BY r.id
             ORDER BY r.created_at DESC
         `, [user_id]);
 
@@ -319,11 +325,14 @@ exports.getFollowingFeed = async (req, res) => {
                 r.image_url,
                 r.created_at,
                 r.updated_at,
-                u.username AS author
+                u.username AS author,
+                COALESCE(AVG(rt.rating), 0) AS average_rating
             FROM recipes r
             JOIN user_follows f ON r.user_id = f.following_id
             JOIN users u ON r.user_id = u.id
+            LEFT JOIN ratings rt ON rt.recipe_id = r.id
             WHERE f.follower_id = ?
+            GROUP BY r.id
             ORDER BY r.created_at DESC
         `, [userId]);
 

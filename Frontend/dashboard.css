@@ -31,7 +31,7 @@ nav > div:first-child {
 
 nav a {
     font-size: 18px;
-    font-weight: 500;
+    font-weight: 700;
     color: #1a1a1a;
     text-decoration: none;
 }
@@ -54,6 +54,7 @@ nav a:hover {
     padding: 10px 18px;
     border-radius: 8px;
     font-size: 16px;
+    font-weight: 700;
 }
 
 /* Create Recipe button - Outline style */
@@ -81,10 +82,8 @@ nav a:hover {
 
 /* FULL PAGE BACKGROUND */
 body {
-  background-image: url('uploads/lemon-background.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+    background-image: none;
+    background-color: #F5EFD6;
   position: relative;
   min-height: 100vh;
   z-index: 0;
@@ -95,8 +94,8 @@ body::before {
     position: fixed;
     inset: 0;
     min-height: 100vh;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.30) 25%, rgba(255,255,255,0.18) 50%, rgba(0,0,0,0.25) 80%, rgba(0,0,0,0.35) 100%);
-    filter: blur(4px);
+    background: transparent;
+    filter: none;
     pointer-events: none;
     z-index: 0;
 }
@@ -119,7 +118,7 @@ nav,
     font-size: 32px;
     margin-top: 40px;
     margin-bottom: 25px;
-    color: #ffffff;
+    color: #448f59;
     text-shadow: 0 2px 6px rgba(0,0,0,0.4);
 
 }
@@ -153,7 +152,7 @@ nav,
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.247);
     backdrop-filter: blur(4px);
     border-radius: 0 0 25px 25px;
     margin-bottom: 40px;
@@ -173,7 +172,7 @@ nav,
 .hero-slogan {
     font-size: 26px;
     margin-top: 12px;
-    color: white;
+    color: #06402B;
     opacity: 0.95;
 }
 
@@ -187,7 +186,7 @@ nav,
 /* Recipes grid layout */
 .analytics-row {
     display: grid;
-    grid-template-columns: repeat(3, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 18px;
     margin: 20px 0 24px;
 }

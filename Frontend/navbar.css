@@ -1,0 +1,44 @@
+/* Shared navbar styling aligned with dashboard */
+nav {
+    background-color: rgba(255, 235, 120, 0.55);
+    backdrop-filter: blur(10px);
+    padding: 18px 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    border-radius: 0 0 20px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav > div:first-child {
+    display: flex;
+    gap: 30px;
+}
+
+nav a {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    text-decoration: none;
+}
+
+nav a:hover {
+    opacity: 0.7;
+    transition: 0.2s ease;
+}
+
+#profile-menu {
+    position: relative;
+    display: inline-block;
+}
+
+#profile-btn {
+    background: #6FB34A;
+    color: rgb(0, 0, 0);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}

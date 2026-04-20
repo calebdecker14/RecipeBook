@@ -4,6 +4,7 @@
 <head>
     <title>My Recipes</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navbar.css">
     <link rel="stylesheet" href="shopping-list.css">
 </head>
 
@@ -30,7 +31,10 @@
         <h1>My Recipes</h1>
 
         <button id="showCreate" class="recipe-section-btn">🍋 Upload Recipe 🍋</button>
-        <input type="text" id="recipe-search" placeholder="Search recipes..." onkeyup="filterRecipes()">
+        <div class="search-controls">
+            <input type="text" id="recipe-search" placeholder="Search recipes..." onkeyup="filterRecipes()">
+            <button type="button" id="recipe-filter-btn" class="search-filter-btn" onclick="filterRecipes()">Filter</button>
+        </div>
 
         <div id="createForm" class="card" style="display:none;">
             <form id="recipeForm" enctype="multipart/form-data">
@@ -48,12 +52,14 @@
                 <input type="file" id="image" accept="image/*">
                 <div id="imagePreview"></div>
 
-                <button type="submit" class="recipe-section-btn">Submit</button>
-                <button type="button" id="cancelCreate" class="recipe-section-btn" style="background-color: #6c757d;">Cancel</button>
+                <div class="form-actions">
+                    <button type="submit" class="recipe-section-btn">Submit</button>
+                    <button type="button" id="cancelCreate" class="recipe-section-btn cancel-btn">Cancel</button>
+                </div>
             </form>
         </div>
 
-        <div id="feed"></div>
+        <div id="feed" class="my-recipes-feed"></div>
     </div>
 
       </div>
@@ -70,6 +76,33 @@
         </div>
     </div>
 
+    <div id="recipe-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content recipe-modal-content">
+            <button type="button" id="recipe-modal-close" class="modal-close">&times;</button>
+            <div id="recipe-modal-body"></div>
+        </div>
+    </div>
+
+    <div id="commentModal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-content">
+            <button type="button" id="commentModalClose" class="modal-close" aria-label="Close comments">&times;</button>
+            <h3 id="commentModalTitle">Comments</h3>
+            <div id="commentList" class="comment-list"></div>
+            <textarea id="commentInput" placeholder="Write a comment..."></textarea>
+            <button id="commentSubmitButton" type="button">Post Comment</button>
+        </div>
+    </div>
+
+    <div id="ratingModal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-content rating-modal-content">
+            <button type="button" id="ratingModalClose" class="modal-close" aria-label="Close rating">&times;</button>
+            <h3>Rate this recipe</h3>
+            <div id="ratingStars" class="rating-stars" role="radiogroup" aria-label="Recipe rating"></div>
+            <p id="ratingSelectionText">Select a star rating</p>
+            <button id="ratingSubmitButton" type="button" class="recipe-section-btn" disabled>Submit Rating</button>
+        </div>
+    </div>
+
     <script src="calendar.js"></script>
     <script src="shopping.js"></script>
 
@@ -80,6 +113,11 @@
     <script>
         const API_BASE_URL = 'http://localhost:3000';
         const token = localStorage.getItem("token");
+        let allMyRecipes = [];
+        let activeCommentRecipeId = null;
+        let activeCommentRecipeTitle = '';
+        let activeRatingRecipeId = null;
+        let selectedRating = 0;
 
         /* ---------------- HELPERS ---------------- */
         function escapeHtml(text) {
@@ -92,8 +130,96 @@
             }[m])) : '';
         }
 
+        function escapeAttr(text) {
+            return text ? text.replace(/["']/g, m => (m === '"' ? '&quot;' : '&#039;')) : '';
+        }
+
         function toggleSection(btn) {
             btn.nextElementSibling.classList.toggle('hidden');
+        }
+
+        function buildIngredientsHtml(ingredients = []) {
+            let list = ingredients;
+
+            if (typeof list === 'string') {
+                try {
+                    list = JSON.parse(list);
+                } catch {
+                    list = [list];
+                }
+            }
+
+            if (!Array.isArray(list) || !list.length) return '<p>No ingredients listed.</p>';
+
+            return list.map(item => {
+                if (typeof item === 'string') return escapeHtml(item);
+
+                const amount = escapeHtml(item.amount || '');
+                const name = escapeHtml(item.name || item.ingredient || '');
+                const line = `${amount} ${name}`.trim();
+                return line || 'Ingredient';
+            }).join('<br>');
+        }
+
+        function formatAverageRating(recipe) {
+            const raw = recipe.average_rating ?? recipe.avg_rating;
+            const parsed = Number(raw);
+            if (!Number.isFinite(parsed) || parsed <= 0) return 'No ratings yet';
+
+            const rounded = Math.max(1, Math.min(5, Math.round(parsed)));
+            return '⭐'.repeat(rounded);
+        }
+
+        function openRecipeModal(recipe) {
+            const modal = document.getElementById('recipe-modal');
+            const modalBody = document.getElementById('recipe-modal-body');
+            const imageSrc = recipe.image_url || '/uploads/placeholder.png';
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const isFavorited = favorites.some(f => f.id === recipe.id);
+
+            modalBody.innerHTML = `
+                <h3>${escapeHtml(recipe.title)}</h3>
+                <img src="${API_BASE_URL}${imageSrc}" class="recipe-card-image" alt="${escapeAttr(recipe.title || 'Recipe image')}">
+                <p>${escapeHtml(recipe.description || 'No description provided.')}</p>
+                <p><strong>Author:</strong> ${escapeHtml(recipe.author || 'Anonymous')}</p>
+                <p class="recipe-average-rating"><strong>Average Rating:</strong> ${formatAverageRating(recipe)}</p>
+                <p class="recipe-time"><strong>Time:</strong> ${escapeHtml(recipe.estimated_time || '')}</p>
+
+                <button class="recipe-section-btn modal-section-btn" onclick="toggleSection(this)">Ingredients</button>
+                <div class="section-content hidden">
+                    ${buildIngredientsHtml(recipe.ingredients || [])}
+                </div>
+
+                <button class="recipe-section-btn modal-section-btn" onclick="toggleSection(this)">Instructions</button>
+                <div class="section-content hidden">${escapeHtml(recipe.instructions || 'No instructions provided.').replace(/\n/g, '<br>')}</div>
+
+                <button class="favorite-heart modal-favorite recipe-favorite-btn" id="modal-favorite-btn" data-recipe-id="${recipe.id}">${isFavorited ? '❤️' : '🤍'}</button>
+
+                <div class="recipe-actions modal-recipe-actions">
+                    <button class="recipe-section-btn" id="modal-edit-btn">Edit</button>
+                    <button class="recipe-section-btn modal-delete-btn" id="modal-delete-btn">Delete</button>
+                    <button class="recipe-section-btn" id="modal-comment-btn">Comment</button>
+                    <button class="recipe-section-btn" id="modal-rate-btn">Rate</button>
+                </div>
+            `;
+
+            document.getElementById('modal-favorite-btn').onclick = (event) => toggleFavorite(recipe, event);
+            document.getElementById('modal-edit-btn').onclick = () => {
+                window.location.href = `editRecipe.html?id=${recipe.id}`;
+            };
+            document.getElementById('modal-delete-btn').onclick = async () => {
+                await deleteRecipe(recipe.id);
+                closeRecipeModal();
+            };
+            document.getElementById('modal-comment-btn').onclick = () => showCommentModal(recipe.id, recipe.title);
+            document.getElementById('modal-rate-btn').onclick = () => openRatingModal(recipe.id);
+
+            modal.style.display = 'flex';
+        }
+
+        function closeRecipeModal() {
+            const modal = document.getElementById('recipe-modal');
+            modal.style.display = 'none';
         }
 
         /* ---------------- INGREDIENT ROWS ---------------- */
@@ -104,7 +230,7 @@
             row.innerHTML = `
                 <input class="ingredient-name" placeholder="Ingredient" value="${escapeHtml(name)}">
                 <input class="ingredient-amount" placeholder="Amount" value="${escapeHtml(amount)}">
-                <button type="button" style="background:none; border:none; color:red; cursor:pointer;">X</button>
+                <button type="button" class="ingredient-remove-btn">X</button>
             `;
 
             row.querySelector('button').onclick = () => row.remove();
@@ -159,12 +285,33 @@
 
         /* ---------------- LOAD FEED ---------------- */
         async function loadFeed() {
-            const res = await fetch(API_BASE_URL + '/recipes/my', {
-                headers: { Authorization: `Bearer ${token}` }
+            const [myRes, publicRes] = await Promise.all([
+                fetch(API_BASE_URL + '/recipes/my', {
+                    headers: { Authorization: `Bearer ${token}` }
+                }),
+                fetch(API_BASE_URL + '/recipes')
+            ]);
+
+            const recipes = await myRes.json();
+            const publicRecipes = publicRes.ok ? await publicRes.json() : [];
+            const publicById = new Map((publicRecipes || []).map(r => [r.id, r]));
+
+            const recipesWithRatings = recipes.map(recipe => {
+                if (recipe.average_rating != null || recipe.avg_rating != null) return recipe;
+                const fallback = publicById.get(recipe.id);
+                if (!fallback) return recipe;
+
+                return {
+                    ...recipe,
+                    average_rating: fallback.average_rating ?? fallback.avg_rating ?? 0
+                };
             });
 
-            const recipes = await res.json();
+            allMyRecipes = recipesWithRatings;
+            renderRecipes(allMyRecipes);
+        }
 
+        function renderRecipes(recipes) {
             feed.innerHTML = '';
             recipes.forEach(r => feed.appendChild(buildCard(r)));
         }
@@ -172,33 +319,37 @@
         /* ---------------- BUILD CARD ---------------- */
         function buildCard(r) {
             const card = document.createElement('div');
-            card.className = 'card';
+            card.className = 'card recipe-collapsible-card';
 
             const imageSrc = r.image_url || '/uploads/placeholder.png';
-            const imageHtml = `<img src="${API_BASE_URL}${imageSrc}" style="max-width:200px;">`;
+            const imageHtml = `<img src="${API_BASE_URL}${imageSrc}" class="recipe-card-image" alt="${escapeAttr(r.title || 'Recipe image')}">`;
 
             card.innerHTML = `
-                <h3>${escapeHtml(r.title)}</h3>
-                ${imageHtml}
-                <p>${escapeHtml(r.description)}</p>
-                <p><strong>Time:</strong> ${escapeHtml(r.estimated_time || '')}</p>
-
-                <button class="recipe-section-btn" onclick="toggleSection(this)">Ingredients</button>
-                <div class="section-content hidden">
-                    ${(r.ingredients || []).map(i => `${escapeHtml(i.amount)} ${escapeHtml(i.name)}`).join('<br>')}
+                <div class="recipe-summary">
+                    <h3>${escapeHtml(r.title)}</h3>
+                    ${imageHtml}
+                    <p class="recipe-summary-description">${escapeHtml(r.description || 'No description provided.')}</p>
+                    <p class="recipe-average-rating"><strong>Average Rating:</strong> ${formatAverageRating(r)}</p>
+                    <p class="recipe-time"><strong>Time:</strong> ${escapeHtml(r.estimated_time || '')}</p>
                 </div>
-
-                <button class="recipe-section-btn" onclick="toggleSection(this)">Instructions</button>
-                <div class="section-content hidden">${escapeHtml(r.instructions || '')}</div>
             `;
+
+            card.addEventListener('click', (event) => {
+                if (event.target.closest('button, a, input, textarea, select, label')) return;
+                openRecipeModal(r);
+            });
 
             const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
             const isFavorited = favorites.some(f => f.id === r.id);
 
             const favBtn = document.createElement('button');
-            favBtn.className = 'favorite-heart';
+            favBtn.className = 'favorite-heart recipe-favorite-btn';
+            favBtn.dataset.recipeId = r.id;
             favBtn.textContent = isFavorited ? '❤️' : '🤍';
-            favBtn.onclick = (event) => toggleFavorite(r, event);
+            favBtn.onclick = (event) => {
+                event.stopPropagation();
+                toggleFavorite(r, event);
+            };
             card.appendChild(favBtn);
 
             const actions = document.createElement('div');
@@ -208,7 +359,8 @@
             const editBtn = document.createElement('button');
             editBtn.className = 'recipe-section-btn';
             editBtn.textContent = 'Edit';
-            editBtn.onclick = () => {
+            editBtn.onclick = (event) => {
+                event.stopPropagation();
                 window.location.href = `editRecipe.html?id=${r.id}`;
             };
             actions.appendChild(editBtn);
@@ -218,14 +370,30 @@
             deleteBtn.className = 'recipe-section-btn';
             deleteBtn.textContent = 'Delete';
             deleteBtn.style.backgroundColor = '#ff6b6b'; // Keep it red for warning
-            deleteBtn.onclick = () => deleteRecipe(r.id);
+            deleteBtn.onclick = (event) => {
+                event.stopPropagation();
+                deleteRecipe(r.id);
+            };
             actions.appendChild(deleteBtn);
+
+            /* RATE */
+            const commentBtn = document.createElement('button');
+            commentBtn.className = 'recipe-section-btn';
+            commentBtn.textContent = 'Comment';
+            commentBtn.onclick = (event) => {
+                event.stopPropagation();
+                showCommentModal(r.id, r.title);
+            };
+            actions.appendChild(commentBtn);
 
             /* RATE */
             const rateBtn = document.createElement('button');
             rateBtn.className = 'recipe-section-btn';
             rateBtn.textContent = 'Rate';
-            rateBtn.onclick = () => rateRecipe(r.id);
+            rateBtn.onclick = (event) => {
+                event.stopPropagation();
+                openRatingModal(r.id);
+            };
             actions.appendChild(rateBtn);
 
             card.appendChild(actions);
@@ -245,9 +413,10 @@
             }
 
             localStorage.setItem('favorites', JSON.stringify(favorites));
-            const favBtn = event.target;
             const isNowFavorited = favorites.some(f => f.id === recipe.id);
-            favBtn.textContent = isNowFavorited ? '❤️' : '🤍';
+            document.querySelectorAll(`.recipe-favorite-btn[data-recipe-id="${recipe.id}"]`).forEach(btn => {
+                btn.textContent = isNowFavorited ? '❤️' : '🤍';
+            });
         }
 
         /* ---------------- DELETE ---------------- */
@@ -263,31 +432,184 @@
         }
 
         /* ---------------- RATE ---------------- */
-        async function rateRecipe(id) {
-            const rating = prompt("Rate 1-5:");
-            if (!rating) return;
+        function renderRatingStars() {
+            const container = document.getElementById('ratingStars');
+            container.innerHTML = '';
 
-            await fetch(`${API_BASE_URL}/recipes/${id}/ratings`, {
+            for (let i = 1; i <= 5; i += 1) {
+                const star = document.createElement('button');
+                star.type = 'button';
+                star.className = `rating-star ${i <= selectedRating ? 'selected' : ''}`;
+                star.textContent = '★';
+                star.setAttribute('aria-label', `Rate ${i} star${i > 1 ? 's' : ''}`);
+                star.onclick = () => {
+                    selectedRating = i;
+                    renderRatingStars();
+                };
+                container.appendChild(star);
+            }
+
+            document.getElementById('ratingSelectionText').textContent = selectedRating
+                ? `You selected ${selectedRating} star${selectedRating > 1 ? 's' : ''}`
+                : 'Select a star rating';
+            document.getElementById('ratingSubmitButton').disabled = !selectedRating;
+        }
+
+        function openRatingModal(recipeId) {
+            activeRatingRecipeId = recipeId;
+            selectedRating = 0;
+            renderRatingStars();
+            const modal = document.getElementById('ratingModal');
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeRatingModal() {
+            const modal = document.getElementById('ratingModal');
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        async function submitRating() {
+            if (!activeRatingRecipeId || !selectedRating) return;
+
+            const res = await fetch(`${API_BASE_URL}/recipes/${activeRatingRecipeId}/ratings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify({ rating })
+                body: JSON.stringify({ rating: selectedRating })
             });
+
+            if (!res.ok) {
+                alert('Failed to submit rating');
+                return;
+            }
+
+            closeRatingModal();
+            await loadFeed();
+        }
+
+        /* ---------------- COMMENTS ---------------- */
+        async function submitComment() {
+            if (!activeCommentRecipeId) return;
+
+            const input = document.getElementById('commentInput');
+            const comment = input.value.trim();
+            if (!comment) {
+                alert('Please write a comment first.');
+                return;
+            }
+
+            const res = await fetch(`${API_BASE_URL}/recipes/${activeCommentRecipeId}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ comment_text: comment.trim() })
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                alert(err.error || 'Failed to post comment');
+                return;
+            }
+
+            input.value = '';
+            await showCommentModal(activeCommentRecipeId, activeCommentRecipeTitle);
+        }
+
+        async function showCommentModal(recipeId, recipeTitle = '') {
+            const modal = document.getElementById('commentModal');
+            const list = document.getElementById('commentList');
+            const title = document.getElementById('commentModalTitle');
+
+            activeCommentRecipeId = recipeId;
+            activeCommentRecipeTitle = recipeTitle || '';
+
+            title.textContent = activeCommentRecipeTitle ? `Comments for: ${activeCommentRecipeTitle}` : 'Comments';
+            list.innerHTML = '<p>Loading comments...</p>';
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/recipes/${recipeId}/comments`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    list.innerHTML = `<p>Error loading comments (${res.status})</p>`;
+                    return;
+                }
+
+                const comments = await res.json();
+
+                if (!comments.length) {
+                    list.innerHTML = '<p>No comments yet. Be the first.</p>';
+                    return;
+                }
+
+                list.innerHTML = comments.map(c => {
+                    const author = escapeHtml(c.author || 'Anonymous');
+                    const text = escapeHtml(c.comment_text || c.comment || '');
+                    return `<div class="comment-item"><strong>${author}</strong><p>${text}</p></div>`;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to load comments', err);
+                list.innerHTML = '<p>Failed to load comments.</p>';
+            }
+        }
+
+        function closeCommentModal() {
+            const modal = document.getElementById('commentModal');
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
         }
 
         /* ---------------- SEARCH ---------------- */
         function filterRecipes() {
             const value = document.getElementById('recipe-search').value.toLowerCase();
-            document.querySelectorAll('#feed .card').forEach(card => {
-                card.style.display = card.innerText.toLowerCase().includes(value) ? '' : 'none';
+
+            const filtered = allMyRecipes.filter(r => {
+                const title = (r.title || '').toLowerCase();
+                const description = (r.description || '').toLowerCase();
+                const time = String(r.estimated_time || '').toLowerCase();
+                const instructions = (r.instructions || '').toLowerCase();
+                const ingredients = (r.ingredients || [])
+                    .map(i => `${(i.amount || '').toLowerCase()} ${(i.name || '').toLowerCase()}`)
+                    .join(' ');
+
+                return title.includes(value)
+                    || description.includes(value)
+                    || time.includes(value)
+                    || instructions.includes(value)
+                    || ingredients.includes(value);
             });
+
+            renderRecipes(filtered);
         }
 
         /* ---------------- TOGGLE FORM ---------------- */
         showCreate.onclick = () => createForm.style.display = 'block';
         cancelCreate.onclick = () => createForm.style.display = 'none';
+
+        document.getElementById('recipe-modal-close').addEventListener('click', closeRecipeModal);
+        document.getElementById('recipe-modal').addEventListener('click', (event) => {
+            if (event.target.id === 'recipe-modal') closeRecipeModal();
+        });
+        document.getElementById('commentModalClose').addEventListener('click', closeCommentModal);
+        document.getElementById('commentModal').addEventListener('click', (event) => {
+            if (event.target.id === 'commentModal') closeCommentModal();
+        });
+        document.getElementById('commentSubmitButton').addEventListener('click', submitComment);
+        document.getElementById('ratingModalClose').addEventListener('click', closeRatingModal);
+        document.getElementById('ratingModal').addEventListener('click', (event) => {
+            if (event.target.id === 'ratingModal') closeRatingModal();
+        });
+        document.getElementById('ratingSubmitButton').addEventListener('click', submitRating);
+        document.getElementById('recipe-filter-btn').addEventListener('click', filterRecipes);
 
         /* ---------------- INIT ---------------- */
         document.addEventListener('DOMContentLoaded', loadFeed);

@@ -4,6 +4,7 @@
 <head>
     <title>Home</title>
     <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="navbar.css">
     <link rel="stylesheet" href="shopping-list.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -40,11 +41,15 @@
         </div>
         <div class="analytics-card">
             <h3>Average Recipe Rating</h3>
-            <p id="avg-rating">0.0</p>
+            <p id="avg-rating">No ratings yet</p>
         </div>
         <div class="analytics-card">
             <h3>Favorited Recipes</h3>
             <p id="favorited-count">0</p>
+        </div>
+        <div class="analytics-card">
+            <h3>Followers</h3>
+            <p id="followers-count">0</p>
         </div>
     </section>
 
@@ -97,6 +102,15 @@ window.addEventListener('beforeunload', () => {
 async function loadDashboardAnalytics() {
     const token = localStorage.getItem('token');
     let userRecipes = [];
+    let allRecipes = [];
+    let followers = [];
+
+    function averageToStars(avg) {
+        const value = Number(avg);
+        if (!Number.isFinite(value) || value <= 0) return '☆☆☆☆☆';
+        const rounded = Math.max(1, Math.min(5, Math.round(value)));
+        return '★'.repeat(rounded) + '☆'.repeat(5 - rounded);
+    }
 
     try {
         const res = await fetch('http://localhost:3000/recipes/my', {
@@ -112,14 +126,51 @@ async function loadDashboardAnalytics() {
         console.error('Error loading dashboard analytics recipes:', err);
     }
 
-    const recipeCount = userRecipes.length;
-    const avgRating = recipeCount ? (userRecipes.reduce((sum, r) => sum + Number(r.average_rating || 0), 0) / recipeCount) : 0;
+    try {
+        const allRes = await fetch('http://localhost:3000/recipes');
+        if (allRes.ok) {
+            allRecipes = await allRes.json();
+        }
+    } catch (err) {
+        console.error('Error loading dashboard analytics public recipes fallback:', err);
+    }
+
+    try {
+        const followersRes = await fetch('http://localhost:3000/follows/followers', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (followersRes.ok) {
+            followers = await followersRes.json();
+        } else {
+            console.warn('Could not fetch followers for analytics', await followersRes.text());
+        }
+    } catch (err) {
+        console.error('Error loading dashboard analytics followers:', err);
+    }
+
+    const allById = new Map((allRecipes || []).map(r => [r.id, r]));
+    const mergedUserRecipes = (userRecipes || []).map(r => {
+        if (r.average_rating != null || r.avg_rating != null) return r;
+        const fallback = allById.get(r.id);
+        return {
+            ...r,
+            average_rating: fallback ? (fallback.average_rating ?? fallback.avg_rating ?? 0) : 0
+        };
+    });
+
+    const recipeCount = mergedUserRecipes.length;
+    const avgRating = recipeCount
+        ? (mergedUserRecipes.reduce((sum, r) => sum + Number(r.average_rating || 0), 0) / recipeCount)
+        : 0;
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     const favoriteCount = Array.isArray(favorites) ? favorites.length : 0;
+    const followerCount = Array.isArray(followers) ? followers.length : 0;
 
     document.getElementById('my-recipes-count').textContent = recipeCount;
-    document.getElementById('avg-rating').textContent = avgRating.toFixed(1);
+    document.getElementById('avg-rating').textContent = averageToStars(avgRating);
     document.getElementById('favorited-count').textContent = favoriteCount;
+    document.getElementById('followers-count').textContent = followerCount;
 }
 
 async function loadFeaturedRecipes() {
