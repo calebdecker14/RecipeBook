@@ -42,7 +42,28 @@
         <button id="showCreate" class="recipe-section-btn">🍋 Upload Recipe 🍋</button>
         <div class="search-controls">
             <input type="text" id="recipe-search" placeholder="Search recipes..." onkeyup="filterRecipes()">
-            <button type="button" id="recipe-filter-btn" class="search-filter-btn" onclick="filterRecipes()">Filter</button>
+            <button type="button" id="recipe-filter-btn" class="search-filter-btn">Filter</button>
+        </div>
+
+        <div id="filterPanel" class="card filter-panel" style="display:none; margin-bottom: 20px;">
+            <div class="filter-row">
+                <label for="recipe-time-filter">Time:</label>
+                <select id="recipe-time-filter">
+                    <option value="all">All times</option>
+                    <option value="5-15">5-15 minutes</option>
+                    <option value="15-45">15-45 minutes</option>
+                    <option value="60+">1+ hours</option>
+                </select>
+            </div>
+            <div class="filter-row">
+                <label for="recipe-sort-order">Sort:</label>
+                <select id="recipe-sort-order">
+                    <option value="default">Default order</option>
+                    <option value="alpha-asc">A-Z</option>
+                    <option value="alpha-desc">Z-A</option>
+                </select>
+            </div>
+            <button type="button" id="apply-filter-btn" class="search-filter-btn">Apply Filter</button>
         </div>
 
         <div id="createForm" class="card" style="display:none;">
@@ -179,16 +200,22 @@
             return '⭐'.repeat(rounded);
         }
 
+        function resolveImageUrl(imageUrl) {
+            const path = imageUrl || '/uploads/placeholder.png';
+            if (/^https?:\/\//i.test(path)) return path;
+            return `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+        }
+
         function openRecipeModal(recipe) {
             const modal = document.getElementById('recipe-modal');
             const modalBody = document.getElementById('recipe-modal-body');
-            const imageSrc = recipe.image_url || '/uploads/placeholder.png';
+            const imageSrc = resolveImageUrl(recipe.image_url);
             const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
             const isFavorited = favorites.some(f => f.id === recipe.id);
 
             modalBody.innerHTML = `
                 <h3>${escapeHtml(recipe.title)}</h3>
-                <img src="${API_BASE_URL}${imageSrc}" class="recipe-card-image" alt="${escapeAttr(recipe.title || 'Recipe image')}">
+                <img src="${imageSrc}" class="recipe-card-image" alt="${escapeAttr(recipe.title || 'Recipe image')}">
                 <p>${escapeHtml(recipe.description || 'No description provided.')}</p>
                 <p><strong>Author:</strong> ${escapeHtml(recipe.author || 'Anonymous')}</p>
                 <p class="recipe-average-rating"><strong>Average Rating:</strong> ${formatAverageRating(recipe)}</p>
@@ -332,8 +359,8 @@
             const card = document.createElement('div');
             card.className = 'card recipe-collapsible-card';
 
-            const imageSrc = r.image_url || '/uploads/placeholder.png';
-            const imageHtml = `<img src="${API_BASE_URL}${imageSrc}" class="recipe-card-image" alt="${escapeAttr(r.title || 'Recipe image')}">`;
+            const imageSrc = resolveImageUrl(r.image_url);
+            const imageHtml = `<img src="${imageSrc}" class="recipe-card-image" alt="${escapeAttr(r.title || 'Recipe image')}">`;
 
             card.innerHTML = `
                 <div class="recipe-summary">
@@ -581,27 +608,100 @@
             modal.setAttribute('aria-hidden', 'true');
         }
 
+        /* ---------------- FILTER HELPERS ---------------- */
+        function parseEstimatedTimeMinutes(value) {
+            if (value == null) return NaN;
+            let text = String(value).trim().toLowerCase();
+            if (!text) return NaN;
+
+            const hourMatch = text.match(/(\d+(?:\.\d+)?)\s*(h|hr|hrs|hour|hours)/);
+            const minuteMatch = text.match(/(\d+(?:\.\d+)?)\s*(m|min|mins|minute|minutes)/);
+
+            let minutes = 0;
+            if (hourMatch) {
+                minutes += Number(hourMatch[1]) * 60;
+            }
+            if (minuteMatch) {
+                minutes += Number(minuteMatch[1]);
+            }
+            if (hourMatch || minuteMatch) return minutes;
+
+            const numeric = Number(text.replace(/[^\d\.]/g, ''));
+            if (Number.isFinite(numeric)) {
+                return text.includes('h') ? numeric * 60 : numeric;
+            }
+
+            return NaN;
+        }
+
+        function matchesTimeFilter(recipe, filter) {
+            if (!filter || filter === 'all') return true;
+            const minutes = parseEstimatedTimeMinutes(recipe.estimated_time);
+            if (!Number.isFinite(minutes)) return false;
+
+            if (filter === '5-15') return minutes >= 5 && minutes <= 15;
+            if (filter === '15-45') return minutes >= 15 && minutes <= 45;
+            if (filter === '60+') return minutes >= 60;
+            return true;
+        }
+
+        function sortRecipesByTitle(recipes, order) {
+            if (!order || order === 'default') return recipes.slice();
+            return recipes.slice().sort((a, b) => {
+                const left = (a.title || '').toLowerCase();
+                const right = (b.title || '').toLowerCase();
+                if (left < right) return order === 'alpha-asc' ? -1 : 1;
+                if (left > right) return order === 'alpha-asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function toggleFilterPanel() {
+            const panel = document.getElementById('filterPanel');
+            const button = document.getElementById('recipe-filter-btn');
+            const isHidden = panel.style.display === 'none' || !panel.style.display;
+            panel.style.display = isHidden ? 'block' : 'none';
+            button.textContent = isHidden ? 'Filter ▲' : 'Filter';
+        }
+
         /* ---------------- SEARCH ---------------- */
         function filterRecipes() {
             const value = document.getElementById('recipe-search').value.toLowerCase();
+            const timeFilter = document.getElementById('recipe-time-filter').value;
+            const sortOrder = document.getElementById('recipe-sort-order').value;
 
             const filtered = allMyRecipes.filter(r => {
                 const title = (r.title || '').toLowerCase();
                 const description = (r.description || '').toLowerCase();
                 const time = String(r.estimated_time || '').toLowerCase();
                 const instructions = (r.instructions || '').toLowerCase();
-                const ingredients = (r.ingredients || [])
+                
+                let ingredients = r.ingredients;
+                if (typeof ingredients === 'string') {
+                    try {
+                        ingredients = JSON.parse(ingredients);
+                    } catch {
+                        ingredients = [ingredients];
+                    }
+                }
+                if (!Array.isArray(ingredients)) {
+                    ingredients = [ingredients || ''];
+                }
+
+                const ingredientsText = ingredients
                     .map(i => `${(i.amount || '').toLowerCase()} ${(i.name || '').toLowerCase()}`)
                     .join(' ');
 
-                return title.includes(value)
+                const matchesSearch = title.includes(value)
                     || description.includes(value)
                     || time.includes(value)
                     || instructions.includes(value)
-                    || ingredients.includes(value);
+                    || ingredientsText.includes(value);
+
+                return matchesSearch && matchesTimeFilter(r, timeFilter);
             });
 
-            renderRecipes(filtered);
+            renderRecipes(sortRecipesByTitle(filtered, sortOrder));
         }
 
         /* ---------------- TOGGLE FORM ---------------- */
@@ -622,7 +722,8 @@
             if (event.target.id === 'ratingModal') closeRatingModal();
         });
         document.getElementById('ratingSubmitButton').addEventListener('click', submitRating);
-        document.getElementById('recipe-filter-btn').addEventListener('click', filterRecipes);
+        document.getElementById('recipe-filter-btn').addEventListener('click', toggleFilterPanel);
+        document.getElementById('apply-filter-btn').addEventListener('click', filterRecipes);
 
         /* ---------------- INIT ---------------- */
         document.addEventListener('DOMContentLoaded', loadFeed);

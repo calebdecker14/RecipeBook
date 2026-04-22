@@ -51,7 +51,33 @@
         <div id="tabAllContent">
             <div class="search-controls">
                 <input type="text" id="recipe-search" placeholder="Search..." onkeyup="filterFeed()">
-                <button type="button" id="all-filter-btn" class="search-filter-btn" onclick="filterFeed()">Filter</button>
+                <button type="button" id="all-filter-btn" class="search-filter-btn">Filter</button>
+            </div>
+            <div id="filterPanelAll" class="card filter-panel" style="display:none; margin-bottom: 20px;">
+                <div class="filter-row">
+                    <label for="recipe-time-filter">Time:</label>
+                    <select id="recipe-time-filter">
+                        <option value="all">All times</option>
+                        <option value="5-15">5-15 minutes</option>
+                        <option value="15-45">15-45 minutes</option>
+                        <option value="60+">1+ hours</option>
+                    </select>
+                </div>
+                <div class="filter-row">
+                    <label for="recipe-sort-order">Sort:</label>
+                    <select id="recipe-sort-order">
+                        <option value="default">Default order</option>
+                        <option value="alpha-asc">A-Z</option>
+                        <option value="alpha-desc">Z-A</option>
+                    </select>
+                </div>
+                <div class="filter-row">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="following-only-filter">
+                        By people you follow
+                    </label>
+                </div>
+                <button type="button" id="apply-filter-all-btn" class="search-filter-btn">Apply Filter</button>
             </div>
             <div id="feed" class="community-feed"></div>
         </div>
@@ -60,7 +86,27 @@
         <div id="tabFollowingContent" style="display:none;">
             <div class="search-controls">
                 <input type="text" id="following-search" placeholder="Search..." onkeyup="filterFollowingFeed()">
-                <button type="button" id="following-filter-btn" class="search-filter-btn" onclick="filterFollowingFeed()">Filter</button>
+                <button type="button" id="following-filter-btn" class="search-filter-btn">Filter</button>
+            </div>
+            <div id="filterPanelFollowing" class="card filter-panel" style="display:none; margin-bottom: 20px;">
+                <div class="filter-row">
+                    <label for="following-time-filter">Time:</label>
+                    <select id="following-time-filter">
+                        <option value="all">All times</option>
+                        <option value="5-15">5-15 minutes</option>
+                        <option value="15-45">15-45 minutes</option>
+                        <option value="60+">1+ hours</option>
+                    </select>
+                </div>
+                <div class="filter-row">
+                    <label for="following-sort-order">Sort:</label>
+                    <select id="following-sort-order">
+                        <option value="default">Default order</option>
+                        <option value="alpha-asc">A-Z</option>
+                        <option value="alpha-desc">Z-A</option>
+                    </select>
+                </div>
+                <button type="button" id="apply-filter-following-btn" class="search-filter-btn">Apply Filter</button>
             </div>
             <div id="followingFeed" class="community-feed"></div>
         </div>
@@ -382,6 +428,62 @@
             });
         }
 
+        // ───────────────────────── Filter Helpers
+        function parseEstimatedTimeMinutes(value) {
+            if (value == null) return NaN;
+            let text = String(value).trim().toLowerCase();
+            if (!text) return NaN;
+
+            const hourMatch = text.match(/(\d+(?:\.\d+)?)\s*(h|hr|hrs|hour|hours)/);
+            const minuteMatch = text.match(/(\d+(?:\.\d+)?)\s*(m|min|mins|minute|minutes)/);
+
+            let minutes = 0;
+            if (hourMatch) {
+                minutes += Number(hourMatch[1]) * 60;
+            }
+            if (minuteMatch) {
+                minutes += Number(minuteMatch[1]);
+            }
+            if (hourMatch || minuteMatch) return minutes;
+
+            const numeric = Number(text.replace(/[^\d\.]/g, ''));
+            if (Number.isFinite(numeric)) {
+                return text.includes('h') ? numeric * 60 : numeric;
+            }
+
+            return NaN;
+        }
+
+        function matchesTimeFilter(recipe, filter) {
+            if (!filter || filter === 'all') return true;
+            const minutes = parseEstimatedTimeMinutes(recipe.estimated_time);
+            if (!Number.isFinite(minutes)) return false;
+
+            if (filter === '5-15') return minutes >= 5 && minutes <= 15;
+            if (filter === '15-45') return minutes >= 15 && minutes <= 45;
+            if (filter === '60+') return minutes >= 60;
+            return true;
+        }
+
+        function sortRecipesByTitle(recipes, order) {
+            if (!order || order === 'default') return recipes.slice();
+            return recipes.slice().sort((a, b) => {
+                const left = (a.title || '').toLowerCase();
+                const right = (b.title || '').toLowerCase();
+                if (left < right) return order === 'alpha-asc' ? -1 : 1;
+                if (left > right) return order === 'alpha-asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function toggleFilterPanel(panelId, buttonId) {
+            const panel = document.getElementById(panelId);
+            const button = document.getElementById(buttonId);
+            const isHidden = panel.style.display === 'none' || !panel.style.display;
+            panel.style.display = isHidden ? 'block' : 'none';
+            button.textContent = isHidden ? 'Filter ▲' : 'Filter';
+        }
+
         // ───────────────────────── Tabs
         function switchTab(tab) {
             const isAll = tab === "all";
@@ -398,26 +500,38 @@
         // ───────────────────────── Search
         function filterFeed() {
             const input = document.getElementById("recipe-search").value.toLowerCase();
-            const filtered = allRecipes.filter(r => {
+            const timeFilter = document.getElementById("recipe-time-filter").value;
+            const sortOrder = document.getElementById("recipe-sort-order").value;
+            const followingOnly = document.getElementById("following-only-filter").checked;
+
+            let filtered = allRecipes.filter(r => {
                 return (r.title || '').toLowerCase().includes(input)
                     || (r.description || '').toLowerCase().includes(input)
                     || (r.author || '').toLowerCase().includes(input)
                     || String(r.estimated_time || '').toLowerCase().includes(input);
             });
 
-            renderFeed(filtered, 'feed');
+            if (followingOnly) {
+                filtered = filtered.filter(r => followedAuthorIds.has(Number(r.author_id)));
+            }
+
+            filtered = filtered.filter(r => matchesTimeFilter(r, timeFilter));
+            renderFeed(sortRecipesByTitle(filtered, sortOrder), 'feed');
         }
 
         function filterFollowingFeed() {
             const input = document.getElementById("following-search").value.toLowerCase();
+            const timeFilter = document.getElementById("following-time-filter").value;
+            const sortOrder = document.getElementById("following-sort-order").value;
+
             const filtered = followingRecipes.filter(r => {
                 return (r.title || '').toLowerCase().includes(input)
                     || (r.description || '').toLowerCase().includes(input)
                     || (r.author || '').toLowerCase().includes(input)
                     || String(r.estimated_time || '').toLowerCase().includes(input);
-            });
+            }).filter(r => matchesTimeFilter(r, timeFilter));
 
-            renderFeed(filtered, 'followingFeed');
+            renderFeed(sortRecipesByTitle(filtered, sortOrder), 'followingFeed');
         }
 
         // ───────────────────────── Expand Sections
@@ -768,8 +882,10 @@
             });
             document.getElementById('authorFollowButton').addEventListener('click', handleAuthorFollowButtonClick);
 
-            document.getElementById('all-filter-btn').addEventListener('click', filterFeed);
-            document.getElementById('following-filter-btn').addEventListener('click', filterFollowingFeed);
+            document.getElementById('all-filter-btn').addEventListener('click', () => toggleFilterPanel('filterPanelAll', 'all-filter-btn'));
+            document.getElementById('following-filter-btn').addEventListener('click', () => toggleFilterPanel('filterPanelFollowing', 'following-filter-btn'));
+            document.getElementById('apply-filter-all-btn').addEventListener('click', filterFeed);
+            document.getElementById('apply-filter-following-btn').addEventListener('click', filterFollowingFeed);
         });
     </script>
 
