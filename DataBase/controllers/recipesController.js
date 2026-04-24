@@ -1,9 +1,23 @@
 const pool = require('../db/pool');
 
+function parseIngredientsValue(value) {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+            return [value];
+        }
+    }
+    return value;
+}
+
 // Create a new recipe
 exports.createRecipe = async (req, res) => {
     try {
         const { title, description, estimated_time, ingredients, instructions } = req.body;
+        const parsedIngredients = parseIngredientsValue(ingredients);
 
         if (!title || title.trim().length === 0 || title.length > 25) {
             return res.status(400).json({ error: 'Title is required and must be 1-25 characters' });
@@ -13,7 +27,7 @@ exports.createRecipe = async (req, res) => {
             return res.status(400).json({ error: 'Description must be 1-800 characters' });
         }
 
-        if (!ingredients || !Array.isArray(ingredients)) {
+        if (!parsedIngredients || !Array.isArray(parsedIngredients)) {
             return res.status(400).json({ error: 'Ingredients must be an array' });
         }
 
@@ -35,7 +49,7 @@ exports.createRecipe = async (req, res) => {
             description.trim(),
             estimated_time || null,
             image_url,
-            JSON.stringify(ingredients),
+            JSON.stringify(parsedIngredients),
             instructions.trim()
         ]);
 
@@ -194,6 +208,7 @@ exports.getRecipeById = async (req, res) => {
 exports.updateRecipe = async (req, res) => {
     try {
         const { title, description, estimated_time, ingredients, instructions } = req.body;
+        const parsedIngredients = parseIngredientsValue(ingredients);
         const recipeId = parseInt(req.params.id, 10);
 
         if (isNaN(recipeId)) {
@@ -208,7 +223,7 @@ exports.updateRecipe = async (req, res) => {
             return res.status(400).json({ error: 'Description must be 1-800 characters' });
         }
 
-        if (!ingredients || !Array.isArray(ingredients)) {
+        if (!parsedIngredients || !Array.isArray(parsedIngredients)) {
             return res.status(400).json({ error: 'Ingredients must be an array' });
         }
 
@@ -228,7 +243,7 @@ exports.updateRecipe = async (req, res) => {
             title.trim(),
             description.trim(),
             estimated_time || null,
-            JSON.stringify(ingredients),
+            JSON.stringify(parsedIngredients),
             instructions.trim(),
             recipeId
         ];
@@ -245,7 +260,7 @@ exports.updateRecipe = async (req, res) => {
                 description.trim(),
                 estimated_time || null,
                 image_url,
-                JSON.stringify(ingredients),
+                JSON.stringify(parsedIngredients),
                 instructions.trim(),
                 recipeId
             ];

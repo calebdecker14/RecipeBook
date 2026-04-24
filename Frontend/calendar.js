@@ -86,7 +86,7 @@ function generateCalendar() {
         `;
 
         dayCell.addEventListener("dragover", (e) => e.preventDefault());
-        dayCell.addEventListener("drop", (e) => handleDrop(e, dayCell));
+        dayCell.addEventListener("drop", async (e) => await handleDrop(e, dayCell));
 
         calendarGrid.appendChild(dayCell);
     }
@@ -143,7 +143,7 @@ async function loadRecipes() {
 }
 
 // -------- HANDLE DROP --------
-function handleDrop(event, dayCell) {
+async function handleDrop(event, dayCell) {
     if (!draggedRecipeId) return;
 
     removeDraggedTag();
@@ -155,6 +155,7 @@ function handleDrop(event, dayCell) {
     container.appendChild(recipeTag);
 
     saveMealPlan(dateStr, draggedRecipeId);
+    await appendRecipeIngredientsToShoppingList(draggedRecipeId);
     draggedRecipeId = null;
 }
 
@@ -252,6 +253,78 @@ async function saveMealPlan(date, recipeId) {
         });
     } catch (error) {
         console.error("Error saving meal plan:", error);
+    }
+}
+
+function normalizeIngredientLine(line) {
+    return line.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function buildIngredientLine(item) {
+    if (!item) return '';
+    if (typeof item === 'string') return item.trim();
+    const name = item.name || item.ingredient || '';
+    const amount = item.amount || '';
+    return `${amount} ${name}`.trim();
+}
+
+async function appendRecipeIngredientsToShoppingList(recipeId) {
+    if (!recipeId) return;
+
+    const recipe = window.allRecipes.find(r => String(r.id) === String(recipeId));
+    if (!recipe || !recipe.ingredients) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const res = await fetch('/api/shopping-list', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!res.ok) {
+            console.warn('Could not load shopping list to append ingredients.');
+            return;
+        }
+
+        const data = await res.json();
+        const existingLines = (data.listContent || '')
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
+
+        const existingSet = new Set(existingLines.map(normalizeIngredientLine));
+        const newLines = [];
+
+        const ingredients = Array.isArray(recipe.ingredients)
+            ? recipe.ingredients
+            : [recipe.ingredients];
+
+        ingredients.forEach(item => {
+            const line = buildIngredientLine(item);
+            if (!line) return;
+            const normalized = normalizeIngredientLine(line);
+            if (existingSet.has(normalized)) return;
+            existingSet.add(normalized);
+            newLines.push(line);
+        });
+
+        if (!newLines.length) return;
+
+        const updatedContent = existingLines.concat(newLines).join('\n');
+
+        await fetch('/api/shopping-list', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ listContent: updatedContent })
+        });
+    } catch (error) {
+        console.error('Error appending recipe ingredients to shopping list:', error);
     }
 }
 
