@@ -4,12 +4,20 @@
 <head>
     <title>Community</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navbar.css">
     <link rel="stylesheet" href="shopping-list.css">
-
-    
 </head>
 
 <body>
+
+    <div class="lemon-field" aria-hidden="true">
+        <span class="lemon lemon-1">🍋</span>
+        <span class="lemon lemon-2">🍋</span>
+        <span class="lemon lemon-3">🍋</span>
+        <span class="lemon lemon-4">🍋</span>
+        <span class="lemon lemon-5">🍋</span>
+        <span class="lemon lemon-6">🍋</span>
+    </div>
 
     <nav>
         <div>
@@ -28,34 +36,459 @@
         </div>
     </nav>
 
+    <button id="shopping-list-btn" class="shopping-list-btn" style="z-index: 1001;">🛒</button>
+
     <div class="container">
         <h1>Community Feed</h1>
 
-        <!-- Tabs -->
         <div class="tab-bar">
             <button id="tabAll" class="active" onclick="switchTab('all')">All Recipes</button>
             <button id="tabFollowing" onclick="switchTab('following')">Following</button>
         </div>
 
-        <!-- ALL -->
         <div id="tabAllContent">
-            <input type="text" id="recipe-search" placeholder="Search..." onkeyup="filterFeed()">
-            <div id="feed"></div>
+            <div class="search-controls">
+                <input type="text" id="recipe-search" placeholder="Search..." onkeyup="filterFeed()">
+                <button type="button" id="all-filter-btn" class="search-filter-btn">Filter</button>
+            </div>
+            <div id="filterPanelAll" class="card filter-panel" style="display:none; margin-bottom: 20px;">
+                <div class="filter-row">
+                    <label for="recipe-time-filter">Time:</label>
+                    <select id="recipe-time-filter" onchange="filterFeed()">
+                        <option value="all">All times</option>
+                        <option value="5-15">5-15 minutes</option>
+                        <option value="15-45">15-45 minutes</option>
+                        <option value="60+">1+ hours</option>
+                    </select>
+                </div>
+                <div class="filter-row">
+                    <label for="recipe-sort-order">Sort:</label>
+                    <select id="recipe-sort-order" onchange="filterFeed()">
+                        <option value="default">Default order</option>
+                        <option value="alpha-asc">A-Z</option>
+                        <option value="alpha-desc">Z-A</option>
+                    </select>
+                </div>
+                <button type="button" id="apply-filter-all-btn" class="search-filter-btn">Apply Filter</button>
+            </div>
+            <div id="feed" class="community-feed"></div>
         </div>
 
-        <!-- FOLLOWING -->
         <div id="tabFollowingContent" style="display:none;">
-            <input type="text" id="following-search" placeholder="Search..." onkeyup="filterFollowingFeed()">
-            <div id="followingFeed"></div>
+            <div class="search-controls">
+                <input type="text" id="following-search" placeholder="Search..." onkeyup="filterFollowingFeed()">
+                <button type="button" id="following-filter-btn" class="search-filter-btn">Filter</button>
+            </div>
+            <div id="filterPanelFollowing" class="card filter-panel" style="display:none; margin-bottom: 20px;">
+                <div class="filter-row">
+                    <label for="following-time-filter">Time:</label>
+                    <select id="following-time-filter" onchange="filterFollowingFeed()">
+                        <option value="all">All times</option>
+                        <option value="5-15">5-15 minutes</option>
+                        <option value="15-45">15-45 minutes</option>
+                        <option value="60+">1+ hours</option>
+                    </select>
+                </div>
+                <div class="filter-row">
+                    <label for="following-sort-order">Sort:</label>
+                    <select id="following-sort-order" onchange="filterFollowingFeed()">
+                        <option value="default">Default order</option>
+                        <option value="alpha-asc">A-Z</option>
+                        <option value="alpha-desc">Z-A</option>
+                    </select>
+                </div>
+                <button type="button" id="apply-filter-following-btn" class="search-filter-btn">Apply Filter</button>
+            </div>
+            <div id="followingFeed" class="community-feed"></div>
         </div>
     </div>
 
+    <div id="shopping-modal" class="shopping-modal-overlay">
+        <div class="modal-content-shopping">
+            <span class="shopping-close-btn">&times;</span>
+            <h2>Shopping List</h2>
+            <textarea id="shopping-list-text" placeholder="Start typing..."></textarea>
+            <button id="save-shopping-btn" class="save-list-btn">Save Changes</button>
+            <div id="save-status"></div>
+        </div>
+    </div>
+
+    <div id="recipe-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content recipe-modal-content">
+            <button type="button" id="recipe-modal-close" class="modal-close">&times;</button>
+            <div id="recipe-modal-body"></div>
+        </div>
+    </div>
+
+    <div id="commentModal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-content">
+            <button type="button" id="commentModalClose" class="modal-close" aria-label="Close comments">&times;</button>
+            <h3 id="commentModalTitle">Comments</h3>
+            <div id="commentList" class="comment-list"></div>
+            <textarea id="commentInput" placeholder="Write a comment..."></textarea>
+            <button id="commentSubmitButton" type="button">Post Comment</button>
+        </div>
+    </div>
+
+    <div id="ratingModal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-content rating-modal-content">
+            <button type="button" id="ratingModalClose" class="modal-close" aria-label="Close rating">&times;</button>
+            <h3>Rate this recipe</h3>
+            <div id="ratingStars" class="rating-stars" role="radiogroup" aria-label="Recipe rating"></div>
+            <p id="ratingSelectionText">Select a star rating</p>
+            <button id="ratingSubmitButton" type="button" class="recipe-section-btn" disabled>Submit Rating</button>
+        </div>
+    </div>
+
+    <div id="authorProfileModal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-content author-profile-modal-content">
+            <button type="button" id="authorProfileModalClose" class="modal-close" aria-label="Close author profile">&times;</button>
+            <div class="author-profile-header">
+                <img id="authorProfilePic" class="author-profile-pic" src="/uploads/placeholder.png" alt="Author profile picture">
+                <div>
+                    <h3 id="authorProfileName">Author</h3>
+                    <p id="authorFollowerCount" class="author-follower-count">0 followers</p>
+                </div>
+            </div>
+            <p id="authorProfileBio" class="author-profile-bio">No bio yet.</p>
+            <button id="authorFollowButton" type="button" class="recipe-section-btn">Follow</button>
+        </div>
+    </div>
+
+    <div class="zestify-corner-logo">
+        <img src="../uploads/Zestify.png" alt="Zestify Logo">
+    </div>
+
+
+
     <script>
         const API_BASE_URL = "http://localhost:3000";
+        const token = localStorage.getItem("token");
+        const followedAuthorIds = new Set();
+        let allRecipes = [];
+        let followingRecipes = [];
+        let currentUserId = null;
+        let activeAuthorProfileId = null;
+        let activeCommentRecipeId = null;
+        let activeCommentRecipeTitle = '';
+        let activeRatingRecipeId = null;
+        let selectedRating = 0;
 
         // 🔐 Auth check
-        if (!localStorage.getItem("token")) {
+        if (!token) {
             window.location.href = "index.html";
+        }
+
+        function escapeHtml(text) {
+            return text ? text.replace(/[&<>"']/g, m => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[m])) : '';
+        }
+
+        function escapeAttr(text) {
+            return text ? text.replace(/["']/g, m => (m === '"' ? '&quot;' : '&#039;')) : '';
+        }
+
+        function getCurrentUserIdFromToken(rawToken) {
+            if (!rawToken || !rawToken.includes('.')) return null;
+
+            try {
+                const payload = rawToken.split('.')[1];
+                const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
+                const padding = '='.repeat((4 - (normalizedPayload.length % 4)) % 4);
+                const decodedPayload = atob(normalizedPayload + padding);
+                const parsed = JSON.parse(decodedPayload);
+                const id = Number(parsed.id ?? parsed.userId ?? parsed.user_id);
+                return Number.isFinite(id) ? id : null;
+            } catch (err) {
+                console.warn('Unable to decode token for user id', err);
+                return null;
+            }
+        }
+
+        function buildAuthorButtonHtml(recipe) {
+            const authorName = recipe.author || 'Anonymous';
+            const safeAuthorName = escapeHtml(authorName);
+            const authorId = Number(recipe.author_id);
+
+            if (!Number.isFinite(authorId)) return safeAuthorName;
+            if (currentUserId && authorId === currentUserId) return `${safeAuthorName} (You)`;
+
+            const isFollowing = followedAuthorIds.has(authorId);
+            return `
+                <button
+                    type="button"
+                    class="author-btn ${isFollowing ? 'is-following' : ''}"
+                    data-author-id="${authorId}"
+                    data-author-name="${escapeAttr(authorName)}"
+                    title="${isFollowing ? 'Click to unfollow this author' : 'Click to follow this author'}"
+                >
+                    ${safeAuthorName}${isFollowing ? ' • Following' : ''}
+                </button>
+            `;
+        }
+
+        function updateAuthorButtons(authorId) {
+            if (!Number.isFinite(authorId)) return;
+
+            const isFollowing = followedAuthorIds.has(authorId);
+            document.querySelectorAll(`.author-btn[data-author-id="${authorId}"]`).forEach(btn => {
+                const authorName = btn.dataset.authorName || 'Anonymous';
+                btn.classList.toggle('is-following', isFollowing);
+                btn.title = isFollowing ? 'Click to unfollow this author' : 'Click to follow this author';
+                btn.textContent = isFollowing ? `${authorName} • Following` : authorName;
+            });
+        }
+
+        async function loadFollowedAuthors() {
+            followedAuthorIds.clear();
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/follows/following`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) return;
+                const followingUsers = await res.json();
+
+                (followingUsers || []).forEach(user => {
+                    const id = Number(user.id);
+                    if (Number.isFinite(id)) followedAuthorIds.add(id);
+                });
+            } catch (err) {
+                console.error('Failed to load followed users', err);
+            }
+        }
+
+        async function toggleAuthorFollow(authorId, event) {
+            if (event) event.stopPropagation();
+            if (!Number.isFinite(authorId)) return;
+
+            const currentlyFollowing = followedAuthorIds.has(authorId);
+            const res = await fetch(`${API_BASE_URL}/follows/${authorId}`, {
+                method: currentlyFollowing ? 'DELETE' : 'POST',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                alert(err.error || 'Unable to update follow status right now.');
+                return false;
+            }
+
+            if (currentlyFollowing) {
+                followedAuthorIds.delete(authorId);
+            } else {
+                followedAuthorIds.add(authorId);
+            }
+
+            updateAuthorButtons(authorId);
+
+            await loadFollowingFeed();
+
+            return true;
+        }
+
+        function formatFollowerCount(value) {
+            const count = Number(value) || 0;
+            return `${count} follower${count === 1 ? '' : 's'}`;
+        }
+
+        function setAuthorFollowButtonState(authorId, isFollowing) {
+            const button = document.getElementById('authorFollowButton');
+            if (!button) return;
+
+            const isOwnProfile = currentUserId && authorId === currentUserId;
+            if (isOwnProfile) {
+                button.textContent = 'This is you';
+                button.disabled = true;
+                button.classList.remove('is-following');
+                return;
+            }
+
+            button.disabled = false;
+            button.classList.toggle('is-following', isFollowing);
+            button.textContent = isFollowing ? 'Unfollow' : 'Follow';
+        }
+
+        async function loadAuthorProfileModalData(authorId, fallbackName = '') {
+            const nameEl = document.getElementById('authorProfileName');
+            const bioEl = document.getElementById('authorProfileBio');
+            const countEl = document.getElementById('authorFollowerCount');
+            const picEl = document.getElementById('authorProfilePic');
+
+            nameEl.textContent = fallbackName || 'Author';
+            bioEl.textContent = 'Loading bio...';
+            countEl.textContent = 'Loading followers...';
+            picEl.src = resolveImageUrl('/uploads/placeholder.png');
+
+            try {
+                const profilePromise = fetch(`${API_BASE_URL}/profile/user/${authorId}`);
+                const followStatusPromise = (currentUserId && authorId === currentUserId)
+                    ? Promise.resolve({ ok: true, json: async () => ({ following: false }) })
+                    : fetch(`${API_BASE_URL}/follows/status/${authorId}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+
+                const [profileRes, statusRes] = await Promise.all([profilePromise, followStatusPromise]);
+
+                if (!profileRes.ok) {
+                    bioEl.textContent = 'Unable to load author details.';
+                    countEl.textContent = 'Follower count unavailable';
+                    return;
+                }
+
+                const profile = await profileRes.json();
+                const statusData = statusRes.ok ? await statusRes.json() : { following: followedAuthorIds.has(authorId) };
+                const isFollowing = Boolean(statusData.following);
+
+                if (isFollowing) followedAuthorIds.add(authorId);
+                else followedAuthorIds.delete(authorId);
+
+                nameEl.textContent = profile.username || fallbackName || 'Author';
+                bioEl.textContent = profile.bio?.trim() ? profile.bio : 'No bio yet.';
+                countEl.textContent = formatFollowerCount(profile.follower_count);
+                // If a stored profile path points to a missing file, fall back to placeholder.
+                picEl.onerror = () => {
+                    picEl.onerror = null;
+                    picEl.src = resolveImageUrl('/uploads/placeholder.png');
+                };
+                picEl.src = resolveImageUrl(profile.profile_pic || '/uploads/placeholder.png');
+                picEl.alt = `${profile.username || 'Author'} profile picture`;
+
+                setAuthorFollowButtonState(authorId, isFollowing);
+                updateAuthorButtons(authorId);
+            } catch (err) {
+                console.error('Failed to load author profile modal data', err);
+                bioEl.textContent = 'Failed to load bio.';
+                countEl.textContent = 'Follower count unavailable';
+            }
+        }
+
+        async function openAuthorProfileModal(authorId, fallbackName = '', event) {
+            if (event) event.stopPropagation();
+            if (!Number.isFinite(authorId)) return;
+
+            activeAuthorProfileId = authorId;
+            const modal = document.getElementById('authorProfileModal');
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+
+            setAuthorFollowButtonState(authorId, followedAuthorIds.has(authorId));
+            await loadAuthorProfileModalData(authorId, fallbackName);
+        }
+
+        function closeAuthorProfileModal() {
+            const modal = document.getElementById('authorProfileModal');
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+            activeAuthorProfileId = null;
+        }
+
+        async function handleAuthorFollowButtonClick() {
+            if (!Number.isFinite(activeAuthorProfileId)) return;
+
+            const changed = await toggleAuthorFollow(activeAuthorProfileId);
+            if (!changed) return;
+
+            await loadAuthorProfileModalData(activeAuthorProfileId);
+        }
+
+        function resolveImageUrl(imageUrl) {
+            const path = imageUrl || '/uploads/placeholder.png';
+            if (/^https?:\/\//i.test(path)) return path;
+            return `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+        }
+
+        function buildIngredientsHtml(ingredients = []) {
+            if (!ingredients.length) return '<p>No ingredients listed.</p>';
+            return ingredients.map(item => {
+                if (typeof item === 'string') return escapeHtml(item);
+                return `${escapeHtml(item.amount || '')} ${escapeHtml(item.name || '')}`;
+            }).join('<br>');
+        }
+
+        function formatAverageRating(recipe) {
+            const parsed = Number(recipe.average_rating ?? recipe.avg_rating);
+            if (!Number.isFinite(parsed) || parsed <= 0) return 'No ratings yet';
+            const rounded = Math.max(1, Math.min(5, Math.round(parsed)));
+            return '⭐'.repeat(rounded);
+        }
+
+        function withAverageRatingFallback(recipes, publicRecipes) {
+            const publicById = new Map((publicRecipes || []).map(r => [r.id, r]));
+
+            return (recipes || []).map(recipe => {
+                if (recipe.average_rating != null || recipe.avg_rating != null) return recipe;
+                const fallback = publicById.get(recipe.id);
+                if (!fallback) return recipe;
+
+                return {
+                    ...recipe,
+                    author_id: recipe.author_id ?? fallback.author_id ?? null,
+                    average_rating: fallback.average_rating ?? fallback.avg_rating ?? 0
+                };
+            });
+        }
+
+        // ───────────────────────── Filter Helpers
+        function parseEstimatedTimeMinutes(value) {
+            if (value == null) return NaN;
+            let text = String(value).trim().toLowerCase();
+            if (!text) return NaN;
+
+            const hourMatch = text.match(/(\d+(?:\.\d+)?)\s*(h|hr|hrs|hour|hours)/);
+            const minuteMatch = text.match(/(\d+(?:\.\d+)?)\s*(m|min|mins|minute|minutes)/);
+
+            let minutes = 0;
+            if (hourMatch) {
+                minutes += Number(hourMatch[1]) * 60;
+            }
+            if (minuteMatch) {
+                minutes += Number(minuteMatch[1]);
+            }
+            if (hourMatch || minuteMatch) return minutes;
+
+            const numeric = Number(text.replace(/[^\d\.]/g, ''));
+            if (Number.isFinite(numeric)) {
+                return text.includes('h') ? numeric * 60 : numeric;
+            }
+
+            return NaN;
+        }
+
+        function matchesTimeFilter(recipe, filter) {
+            if (!filter || filter === 'all') return true;
+            const minutes = parseEstimatedTimeMinutes(recipe.estimated_time);
+            if (!Number.isFinite(minutes)) return false;
+
+            if (filter === '5-15') return minutes >= 5 && minutes <= 15;
+            if (filter === '15-45') return minutes >= 15 && minutes <= 45;
+            if (filter === '60+') return minutes >= 60;
+            return true;
+        }
+
+        function sortRecipesByTitle(recipes, order) {
+            if (!order || order === 'default') return recipes.slice();
+            return recipes.slice().sort((a, b) => {
+                const left = (a.title || '').toLowerCase();
+                const right = (b.title || '').toLowerCase();
+                if (left < right) return order === 'alpha-asc' ? -1 : 1;
+                if (left > right) return order === 'alpha-asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function toggleFilterPanel(panelId, buttonId) {
+            const panel = document.getElementById(panelId);
+            const button = document.getElementById(buttonId);
+            const isHidden = panel.style.display === 'none' || !panel.style.display;
+            panel.style.display = isHidden ? 'block' : 'none';
+            button.textContent = isHidden ? 'Filter ▲' : 'Filter';
         }
 
         // ───────────────────────── Tabs
@@ -74,26 +507,43 @@
         // ───────────────────────── Search
         function filterFeed() {
             const input = document.getElementById("recipe-search").value.toLowerCase();
-            document.querySelectorAll("#feed .card").forEach(c => {
-                c.style.display = c.innerText.toLowerCase().includes(input) ? "" : "none";
+            const timeFilter = document.getElementById("recipe-time-filter").value;
+            const sortOrder = document.getElementById("recipe-sort-order").value;
+
+            let filtered = allRecipes.filter(r => {
+                return (r.title || '').toLowerCase().includes(input)
+                    || (r.description || '').toLowerCase().includes(input)
+                    || (r.author || '').toLowerCase().includes(input)
+                    || String(r.estimated_time || '').toLowerCase().includes(input);
             });
+
+            filtered = filtered.filter(r => matchesTimeFilter(r, timeFilter));
+            renderFeed(sortRecipesByTitle(filtered, sortOrder), 'feed');
         }
 
         function filterFollowingFeed() {
             const input = document.getElementById("following-search").value.toLowerCase();
-            document.querySelectorAll("#followingFeed .card").forEach(c => {
-                c.style.display = c.innerText.toLowerCase().includes(input) ? "" : "none";
-            });
+            const timeFilter = document.getElementById("following-time-filter").value;
+            const sortOrder = document.getElementById("following-sort-order").value;
+
+            const filtered = followingRecipes.filter(r => {
+                return (r.title || '').toLowerCase().includes(input)
+                    || (r.description || '').toLowerCase().includes(input)
+                    || (r.author || '').toLowerCase().includes(input)
+                    || String(r.estimated_time || '').toLowerCase().includes(input);
+            }).filter(r => matchesTimeFilter(r, timeFilter));
+
+            renderFeed(sortRecipesByTitle(filtered, sortOrder), 'followingFeed');
         }
 
         // ───────────────────────── Expand Sections
         function toggleSection(btn) {
-            const sec = btn.nextElementSibling;
-            sec.classList.toggle("hidden");
+            btn.nextElementSibling.classList.toggle("hidden");
         }
 
         // ───────────────────────── Toggle Favorite
         function toggleFavorite(recipe, event) {
+            if (event) event.stopPropagation();
             let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
             const index = favorites.findIndex(f => f.id === recipe.id);
 
@@ -104,76 +554,272 @@
             }
 
             localStorage.setItem('favorites', JSON.stringify(favorites));
-
-            // Update the button appearance immediately
-            const favBtn = event.target;
             const isNowFavorited = favorites.some(f => f.id === recipe.id);
-            favBtn.textContent = isNowFavorited ? '❤️' : '🤍';
+            document.querySelectorAll(`.recipe-favorite-btn[data-recipe-id="${recipe.id}"]`).forEach(btn => {
+                btn.textContent = isNowFavorited ? '❤️' : '🤍';
+            });
         }
 
-        function getStarDisplay(rating) {
-            const score = Math.round(parseFloat(rating) || 0);
-            let stars = "";
-            for (let i = 1; i <= 5; i++) {
-            // If the current index is less than or equal to the score, use a filled star
-            stars += i <= score ? "★" : "☆";
-        }
-    return stars;
-    }
+        function openRecipeModal(recipe) {
+            const modal = document.getElementById('recipe-modal');
+            const modalBody = document.getElementById('recipe-modal-body');
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const isFavorited = favorites.some(f => f.id === recipe.id);
 
-        // ───────────────────────── Build Card
+            modalBody.innerHTML = `
+                <h3>${escapeHtml(recipe.title)}</h3>
+                <img src="${resolveImageUrl(recipe.image_url)}" class="recipe-card-image" alt="${escapeAttr(recipe.title || 'Recipe image')}">
+                <p>${escapeHtml(recipe.description || 'No description provided.')}</p>
+                <p><strong>Author:</strong> ${buildAuthorButtonHtml(recipe)}</p>
+                <p class="recipe-average-rating"><strong>Average Rating:</strong> ${formatAverageRating(recipe)}</p>
+                <p class="recipe-time"><strong>Time:</strong> ${escapeHtml(recipe.estimated_time || '')}</p>
+
+                <button class="recipe-section-btn modal-section-btn" onclick="toggleSection(this)">Ingredients</button>
+                <div class="section-content hidden">${buildIngredientsHtml(recipe.ingredients || [])}</div>
+
+                <button class="recipe-section-btn modal-section-btn" onclick="toggleSection(this)">Instructions</button>
+                <div class="section-content hidden">${escapeHtml(recipe.instructions || 'No instructions provided.').replace(/\n/g, '<br>')}</div>
+
+                <button class="favorite-heart modal-favorite recipe-favorite-btn" id="modal-favorite-btn" data-recipe-id="${recipe.id}">${isFavorited ? '❤️' : '🤍'}</button>
+
+                <div class="recipe-actions modal-recipe-actions">
+                    <button class="recipe-section-btn" id="modal-comment-btn">Comment</button>
+                    <button class="recipe-section-btn" id="modal-rate-btn">Rate</button>
+                </div>
+            `;
+
+            document.getElementById('modal-favorite-btn').onclick = (event) => toggleFavorite(recipe, event);
+            document.getElementById('modal-comment-btn').onclick = () => showCommentModal(recipe.id, recipe.title);
+            document.getElementById('modal-rate-btn').onclick = () => openRatingModal(recipe.id);
+
+            const modalAuthorBtn = modalBody.querySelector('.author-btn[data-author-id]');
+            if (modalAuthorBtn) {
+                modalAuthorBtn.onclick = (event) => {
+                    const authorId = Number(modalAuthorBtn.dataset.authorId);
+                    const authorName = modalAuthorBtn.dataset.authorName || '';
+                    openAuthorProfileModal(authorId, authorName, event);
+                };
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeRecipeModal() {
+            document.getElementById('recipe-modal').style.display = 'none';
+        }
+
         function buildRecipeCard(r) {
             const card = document.createElement("div");
-            card.className = "card";
+            card.className = "card recipe-collapsible-card";
 
-            // Check if recipe is favorited
             const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
             const isFavorited = favorites.some(f => f.id === r.id);
 
             card.innerHTML = `
-        <h3>${r.title}</h3>
-        <p>${r.description}</p>
+                <div class="recipe-summary">
+                    <h3>${escapeHtml(r.title)}</h3>
+                    <img src="${resolveImageUrl(r.image_url)}" class="recipe-card-image" alt="${escapeAttr(r.title || 'Recipe image')}">
+                    <p class="recipe-summary-description">${escapeHtml(r.description || 'No description provided.')}</p>
+                    <p><strong>Author:</strong> ${buildAuthorButtonHtml(r)}</p>
+                    <p class="recipe-average-rating"><strong>Average Rating:</strong> ${formatAverageRating(r)}</p>
+                    <p class="recipe-time"><strong>Time:</strong> ${escapeHtml(r.estimated_time || '')}</p>
+                </div>
+            `;
 
-        <p><strong>Author:</strong>
-            <button class="author-btn">${r.author || "Anonymous"}</button>
-        </p>
+            const authorBtn = card.querySelector('.author-btn[data-author-id]');
+            if (authorBtn) {
+                authorBtn.onclick = (event) => {
+                    const authorId = Number(authorBtn.dataset.authorId);
+                    const authorName = authorBtn.dataset.authorName || '';
+                    openAuthorProfileModal(authorId, authorName, event);
+                };
+            }
 
-        <p><strong>Rating:</strong> <span class="stars">${getStarDisplay(r.average_rating)}</span></p>
-        <p><strong>Comments:</strong> ${r.comment_count || 0}</p>
+            card.addEventListener('click', (event) => {
+                if (event.target.closest('button, a, input, textarea, select, label')) return;
+                openRecipeModal(r);
+            });
 
-        <img src="${API_BASE_URL + (r.image_url || '/uploads/placeholder.png')}" style="max-width:200px;">
-
-        <button class="recipe-section-btn" onclick="toggleSection(this)">Ingredients</button>
-        <div class="section-content hidden">
-            ${(r.ingredients || []).join("<br>")}
-        </div>
-
-        <button class="recipe-section-btn" onclick="toggleSection(this)">Instructions</button>
-        <div class="section-content hidden">
-            ${r.instructions || ""}
-        </div>
-    `;
-
-            // Add favorite button
             const favBtn = document.createElement('button');
-            favBtn.className = 'favorite-heart';
+            favBtn.className = 'favorite-heart recipe-favorite-btn';
+            favBtn.dataset.recipeId = r.id;
             favBtn.textContent = isFavorited ? '❤️' : '🤍';
             favBtn.onclick = (event) => toggleFavorite(r, event);
             card.appendChild(favBtn);
 
+            const actions = document.createElement('div');
+            actions.className = 'recipe-actions';
+
+            const commentBtn = document.createElement('button');
+            commentBtn.className = 'recipe-section-btn';
+            commentBtn.textContent = 'Comment';
+            commentBtn.onclick = (event) => {
+                event.stopPropagation();
+                showCommentModal(r.id, r.title);
+            };
+            actions.appendChild(commentBtn);
+
+            const rateBtn = document.createElement('button');
+            rateBtn.className = 'recipe-section-btn';
+            rateBtn.textContent = 'Rate';
+            rateBtn.onclick = (event) => {
+                event.stopPropagation();
+                openRatingModal(r.id);
+            };
+            actions.appendChild(rateBtn);
+
+            card.appendChild(actions);
+
             return card;
+        }
+
+        async function showCommentModal(recipeId, recipeTitle = '') {
+            const modal = document.getElementById('commentModal');
+            const list = document.getElementById('commentList');
+            const title = document.getElementById('commentModalTitle');
+
+            activeCommentRecipeId = recipeId;
+            activeCommentRecipeTitle = recipeTitle || '';
+            title.textContent = activeCommentRecipeTitle ? `Comments for: ${activeCommentRecipeTitle}` : 'Comments';
+            list.innerHTML = '<p>Loading comments...</p>';
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/recipes/${recipeId}/comments`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    list.innerHTML = `<p>Error loading comments (${res.status})</p>`;
+                    return;
+                }
+
+                const comments = await res.json();
+                if (!comments.length) {
+                    list.innerHTML = '<p>No comments yet. Be the first.</p>';
+                    return;
+                }
+
+                list.innerHTML = comments.map(c => {
+                    const author = escapeHtml(c.author || 'Anonymous');
+                    const text = escapeHtml(c.comment_text || c.comment || '');
+                    return `<div class="comment-item"><strong>${author}</strong><p>${text}</p></div>`;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to load comments', err);
+                list.innerHTML = '<p>Failed to load comments.</p>';
+            }
+        }
+
+        async function submitComment() {
+            if (!activeCommentRecipeId) return;
+
+            const input = document.getElementById('commentInput');
+            const comment = input.value.trim();
+            if (!comment) {
+                alert('Please write a comment first.');
+                return;
+            }
+
+            const res = await fetch(`${API_BASE_URL}/recipes/${activeCommentRecipeId}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ comment_text: comment })
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                alert(err.error || 'Failed to post comment');
+                return;
+            }
+
+            input.value = '';
+            await showCommentModal(activeCommentRecipeId, activeCommentRecipeTitle);
+        }
+
+        function closeCommentModal() {
+            const modal = document.getElementById('commentModal');
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function renderRatingStars() {
+            const container = document.getElementById('ratingStars');
+            container.innerHTML = '';
+
+            for (let i = 1; i <= 5; i += 1) {
+                const star = document.createElement('button');
+                star.type = 'button';
+                star.className = `rating-star ${i <= selectedRating ? 'selected' : ''}`;
+                star.textContent = '★';
+                star.setAttribute('aria-label', `Rate ${i} star${i > 1 ? 's' : ''}`);
+                star.onclick = () => {
+                    selectedRating = i;
+                    renderRatingStars();
+                };
+                container.appendChild(star);
+            }
+
+            document.getElementById('ratingSelectionText').textContent = selectedRating
+                ? `You selected ${selectedRating} star${selectedRating > 1 ? 's' : ''}`
+                : 'Select a star rating';
+            document.getElementById('ratingSubmitButton').disabled = !selectedRating;
+        }
+
+        function openRatingModal(recipeId) {
+            activeRatingRecipeId = recipeId;
+            selectedRating = 0;
+            renderRatingStars();
+            const modal = document.getElementById('ratingModal');
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeRatingModal() {
+            const modal = document.getElementById('ratingModal');
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        async function submitRating() {
+            if (!activeRatingRecipeId || !selectedRating) return;
+
+            const res = await fetch(`${API_BASE_URL}/recipes/${activeRatingRecipeId}/ratings`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ rating: selectedRating })
+            });
+
+            if (!res.ok) {
+                alert('Failed to submit rating');
+                return;
+            }
+
+            closeRatingModal();
+            await Promise.all([loadFeed(), loadFollowingFeed()]);
+        }
+
+        // ───────────────────────── Render
+        function renderFeed(recipes, containerId) {
+            const feed = document.getElementById(containerId);
+            feed.innerHTML = '';
+
+            recipes.forEach(r => feed.appendChild(buildRecipeCard(r)));
         }
 
         // ───────────────────────── Load Feed
         async function loadFeed() {
             try {
                 const res = await fetch(API_BASE_URL + "/recipes");
-                const data = await res.json();
-
-                const feed = document.getElementById("feed");
-                feed.innerHTML = "";
-
-                data.forEach(r => feed.appendChild(buildRecipeCard(r)));
+                allRecipes = await res.json();
+                renderFeed(allRecipes, 'feed');
             } catch (err) {
                 console.error(err);
             }
@@ -182,20 +828,20 @@
         // ───────────────────────── Following Feed
         async function loadFollowingFeed() {
             try {
-                const token = localStorage.getItem("token");
+                const [followingRes, publicRes] = await Promise.all([
+                    fetch(API_BASE_URL + "/recipes/following", {
+                        headers: {
+                            "Authorization": `Bearer ${token}`
+                        }
+                    }),
+                    fetch(API_BASE_URL + "/recipes")
+                ]);
 
-                const res = await fetch(API_BASE_URL + "/recipes/following", {
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
-                });
+                const following = await followingRes.json();
+                const publicRecipes = publicRes.ok ? await publicRes.json() : [];
 
-                const data = await res.json();
-
-                const feed = document.getElementById("followingFeed");
-                feed.innerHTML = "";
-
-                data.forEach(r => feed.appendChild(buildRecipeCard(r)));
+                followingRecipes = withAverageRatingFallback(following, publicRecipes);
+                renderFeed(followingRecipes, 'followingFeed');
             } catch (err) {
                 console.error(err);
             }
@@ -209,8 +855,39 @@
         });
 
         // ───────────────────────── Init
-        document.addEventListener("DOMContentLoaded", () => {
-            loadFeed();
+        document.addEventListener("DOMContentLoaded", async () => {
+            currentUserId = getCurrentUserIdFromToken(token);
+
+            await loadFollowedAuthors();
+            await Promise.all([loadFeed(), loadFollowingFeed()]);
+
+            document.getElementById('recipe-modal-close').addEventListener('click', closeRecipeModal);
+            document.getElementById('recipe-modal').addEventListener('click', (event) => {
+                if (event.target.id === 'recipe-modal') closeRecipeModal();
+            });
+
+            document.getElementById('commentModalClose').addEventListener('click', closeCommentModal);
+            document.getElementById('commentModal').addEventListener('click', (event) => {
+                if (event.target.id === 'commentModal') closeCommentModal();
+            });
+            document.getElementById('commentSubmitButton').addEventListener('click', submitComment);
+
+            document.getElementById('ratingModalClose').addEventListener('click', closeRatingModal);
+            document.getElementById('ratingModal').addEventListener('click', (event) => {
+                if (event.target.id === 'ratingModal') closeRatingModal();
+            });
+            document.getElementById('ratingSubmitButton').addEventListener('click', submitRating);
+
+            document.getElementById('authorProfileModalClose').addEventListener('click', closeAuthorProfileModal);
+            document.getElementById('authorProfileModal').addEventListener('click', (event) => {
+                if (event.target.id === 'authorProfileModal') closeAuthorProfileModal();
+            });
+            document.getElementById('authorFollowButton').addEventListener('click', handleAuthorFollowButtonClick);
+
+            document.getElementById('all-filter-btn').addEventListener('click', () => toggleFilterPanel('filterPanelAll', 'all-filter-btn'));
+            document.getElementById('following-filter-btn').addEventListener('click', () => toggleFilterPanel('filterPanelFollowing', 'following-filter-btn'));
+            document.getElementById('apply-filter-all-btn').addEventListener('click', filterFeed);
+            document.getElementById('apply-filter-following-btn').addEventListener('click', filterFollowingFeed);
         });
     </script>
 

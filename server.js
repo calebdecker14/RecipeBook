@@ -1,5 +1,4 @@
 require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -10,6 +9,13 @@ app.use('/uploads', express.static('uploads'));
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+const recipeRoutes = require('./DataBase/routes/recipes');
+app.use('/recipes', recipeRoutes);
+app.use('/api/recipes', recipeRoutes);
+// -----------------------------------------
+
+app.use(express.static(path.join(__dirname, 'Frontend')));
 
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, 'Frontend')));
@@ -36,6 +42,8 @@ app.get('/db-test', async (req, res) => {
     }
 });
 
+
+
 // Auth routes
 const authRoutes = require('./DataBase/routes/auth');
 app.use('/auth', authRoutes);
@@ -45,10 +53,6 @@ const profileRoutes = require('./DataBase/routes/profileRoutes');
 app.use('/profile', profileRoutes);
 
 
-// Recipes routes
-const recipeRoutes = require('./DataBase/routes/recipes');
-app.use('/recipes', recipeRoutes);
-app.use('/api/recipes', recipeRoutes); // alias for API-style calls
 
 // Comments routesS
 const commentRoutes = require('./DataBase/routes/comments');
@@ -84,6 +88,23 @@ pool.query(`
         FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
     )
 `).catch(err => console.error('user_follows table creation failed:', err));
+
+
+
+function print(path, layer) {
+  if (layer.route) {
+    layer.route.stack.forEach(print.bind(null, path + (layer.route.path === '/' ? '' : layer.route.path)))
+  } else if (layer.name === 'router' && layer.handle && layer.handle.stack) {
+    // Added a check (layer.handle && layer.handle.stack) to prevent the error
+    layer.handle.stack.forEach(print.bind(null, path + (layer.regexp.source.replace('\\/?(?=\\/|$)', '').replace('^\\/', ''))))
+  } else if (layer.method) {
+    console.log('%s /%s', layer.method.toUpperCase(), path.split('/').filter(Boolean).join('/'))
+  }
+}
+
+if (app._router && app._router.stack) {
+    app._router.stack.forEach(print.bind(null, ''));
+}
 
 // Start server
 const PORT = 3000;
