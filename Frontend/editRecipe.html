@@ -32,86 +32,36 @@
         </div>
     </nav>
 
-    <div class="container edit-recipe-container">
-        <section class="edit-recipe-hero">
-            <div>
-                <h1>Edit Recipe</h1>
-            </div>
+    <div class="container">
+        <h1>Edit Recipe</h1>
 
-            <a class="edit-back-link" href="recipes.html">Back to My Recipes</a>
-        </section>
+        <a href="recipes.html" class="recipe-section-btn"
+            style="display:inline-block; margin-bottom: 20px; text-decoration: none;">Back to My Recipes</a>
 
-        <div class="edit-recipe-layout">
-            <form id="editRecipeForm" class="card edit-recipe-form">
+        <div id="editForm" class="card">
+            <form id="recipeForm" enctype="multipart/form-data">
                 <div id="edit-form-status" class="edit-form-status hidden" aria-live="polite"></div>
 
-                <section class="edit-form-section">
-                    <div class="edit-form-section-header">
-                        <h2>Recipe Details</h2>
-                    </div>
+                <input type="text" id="title" placeholder="Title" maxlength="25" required>
+                <textarea id="description" placeholder="Description" maxlength="800" required></textarea>
+                <input type="text" id="estimated_time" placeholder="Estimated Time">
 
-                    <div class="edit-form-grid edit-form-grid-2col">
-                        <label class="edit-field">
-                            <span class="edit-field-label-row">
-                                <span>Title</span>
-                                <span id="title-count" class="edit-field-count">0/25</span>
-                            </span>
-                            <input type="text" id="title" maxlength="25" placeholder="e.g. Lemon Herb Pasta" required>
-                        </label>
+                <h4>Ingredients</h4>
+                <div id="ingredientsContainer"></div>
+                <button type="button" id="addIngredientBtn" class="recipe-section-btn">+ Add Ingredient</button>
 
-                        <label class="edit-field">
-                            <span class="edit-field-label-row">
-                                <span>Estimated Time</span>
-                                <span class="edit-field-hint">Optional</span>
-                            </span>
-                            <input type="text" id="estimated_time" placeholder="e.g. 20 mins">
-                        </label>
-                    </div>
+                <h4>Instructions</h4>
+                <textarea id="instructions" required></textarea>
 
-                    <label class="edit-field">
-                        <span class="edit-field-label-row">
-                            <span>Description</span>
-                            <span id="description-count" class="edit-field-count">0/800</span>
-                        </span>
-                        <textarea id="description" maxlength="800" rows="5" placeholder="Write a short overview of the recipe and why it's worth making." required></textarea>
-                    </label>
-                </section>
+                <input type="file" id="image" accept="image/*">
+                <div id="imagePreview"></div>
 
-                <section class="edit-form-section">
-                    <div class="edit-form-section-header">
-                        <h2>Ingredients</h2>
-                        <p>Separate ingredients by lines or commas.</p>
-                    </div>
-
-                    <label class="edit-field">
-                        <span class="edit-field-label-row">
-                            <span>Ingredient List</span>
-                            <span id="ingredients-count" class="edit-field-count">0 items</span>
-                        </span>
-                        <textarea id="ingredients" rows="9" placeholder="2 eggs&#10;1 cup milk&#10;2 cups flour"></textarea>
-                    </label>
-                </section>
-
-                <section class="edit-form-section">
-                    <div class="edit-form-section-header">
-                        <h2>Instructions</h2>
-                    </div>
-
-                    <label class="edit-field">
-                        <span class="edit-field-label-row">
-                            <span>Cooking Steps</span>
-                            <span id="instructions-count" class="edit-field-count">0 chars</span>
-                        </span>
-                        <textarea id="instructions" rows="12" placeholder="1. Preheat the oven...&#10;2. Whisk the eggs..." required></textarea>
-                    </label>
-                </section>
-
-                <div class="form-actions edit-form-actions">
-                    <a href="recipes.html" class="edit-secondary-action">Cancel</a>
+                <div class="form-actions">
                     <button type="submit" id="update-recipe-btn" class="recipe-section-btn">Save Changes</button>
+                    <button type="button" id="cancelEdit" class="recipe-section-btn cancel-btn"
+                        onclick="window.location.href='recipes.html'">Cancel</button>
                 </div>
             </form>
-
         </div>
     </div>
 

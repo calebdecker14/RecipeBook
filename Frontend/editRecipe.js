@@ -6,8 +6,10 @@ const recipeId = params.get("id") || sessionStorage.getItem("editingRecipeId");
 let titleInput = null;
 let descriptionInput = null;
 let estimatedTimeInput = null;
-let ingredientsInput = null;
 let instructionsInput = null;
+let ingredientsContainer = null;
+let imageInput = null;
+let imagePreview = null;
 let updateButton = null;
 let statusBox = null;
 
@@ -15,8 +17,10 @@ function cacheDomElements() {
     titleInput = document.getElementById("title");
     descriptionInput = document.getElementById("description");
     estimatedTimeInput = document.getElementById("estimated_time");
-    ingredientsInput = document.getElementById("ingredients");
     instructionsInput = document.getElementById("instructions");
+    ingredientsContainer = document.getElementById("ingredientsContainer");
+    imageInput = document.getElementById("image");
+    imagePreview = document.getElementById("imagePreview");
     updateButton = document.getElementById("update-recipe-btn");
     statusBox = document.getElementById("edit-form-status");
 
@@ -24,8 +28,8 @@ function cacheDomElements() {
         titleInput
         && descriptionInput
         && estimatedTimeInput
-        && ingredientsInput
         && instructionsInput
+        && ingredientsContainer
         && updateButton
         && statusBox
     );
@@ -36,15 +40,15 @@ if (!recipeId) {
     window.location.href = "recipes.html";
 }
 
-function populateFormFromRecipe(recipe) {
-    if (!recipe || !titleInput || !descriptionInput || !estimatedTimeInput || !ingredientsInput || !instructionsInput) return;
-
-    titleInput.value = recipe.title || "";
-    descriptionInput.value = recipe.description || "";
-    estimatedTimeInput.value = recipe.estimated_time || "";
-    ingredientsInput.value = normalizeIngredientsForEditor(recipe.ingredients || []);
-    instructionsInput.value = recipe.instructions || "";
-    syncFormUi();
+/* ---------------- HELPERS ---------------- */
+function escapeHtml(text) {
+    return text ? String(text).replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    }[m])) : '';
 }
 
 function setStatus(message, type = "") {
@@ -85,81 +89,6 @@ function buildRecipeUrls(id) {
     ];
 }
 
-function normalizeIngredientsForEditor(ingredients) {
-    let list = ingredients;
-
-    if (typeof list === "string") {
-        try {
-            list = JSON.parse(list);
-        } catch {
-            list = list.split(/[\n,]+/);
-        }
-    }
-
-    if (!Array.isArray(list)) return "";
-
-    return list.map((item) => {
-        if (typeof item === "string") return item.trim();
-
-        const amount = (item.amount || "").trim();
-        const name = (item.name || item.ingredient || "").trim();
-        return `${amount} ${name}`.trim();
-    }).filter(Boolean).join("\n");
-}
-
-function parseIngredientsInput(rawValue) {
-    return rawValue
-        .split(/[\n,]+/)
-        .map(item => item.trim())
-        .filter(Boolean);
-}
-
-function setTextIfPresent(id, text) {
-    const element = document.getElementById(id);
-    if (element) element.textContent = text;
-}
-
-function syncFormUi() {
-    if (!titleInput || !descriptionInput || !estimatedTimeInput || !ingredientsInput || !instructionsInput) return;
-
-    const title = titleInput.value.trim();
-    const description = descriptionInput.value.trim();
-    const estimatedTime = estimatedTimeInput.value.trim();
-    const ingredients = parseIngredientsInput(ingredientsInput.value);
-    const instructions = instructionsInput.value.trim();
-
-    setTextIfPresent("title-count", `${titleInput.value.length}/25`);
-    setTextIfPresent("description-count", `${descriptionInput.value.length}/800`);
-    setTextIfPresent("instructions-count", `${instructionsInput.value.length} chars`);
-    setTextIfPresent("ingredients-count", `${ingredients.length} item${ingredients.length === 1 ? "" : "s"}`);
-
-    setTextIfPresent("preview-title", title || "Untitled recipe");
-    setTextIfPresent("preview-description", description || "Your recipe summary will appear here as you type.");
-    setTextIfPresent("preview-time", estimatedTime || "Time not set");
-    setTextIfPresent("preview-ingredient-total", `${ingredients.length} ingredient${ingredients.length === 1 ? "" : "s"}`);
-
-    const ingredientPreviewList = document.getElementById("ingredient-preview-list");
-    if (ingredientPreviewList) {
-        ingredientPreviewList.innerHTML = "";
-
-        if (!ingredients.length) {
-            const emptyState = document.createElement("li");
-            emptyState.textContent = "Add ingredients to preview them here.";
-            ingredientPreviewList.appendChild(emptyState);
-        } else {
-            ingredients.forEach((ingredient) => {
-                const item = document.createElement("li");
-                item.textContent = ingredient;
-                ingredientPreviewList.appendChild(item);
-            });
-        }
-    }
-
-    if (instructions) {
-        setStatus("", "");
-    }
-}
-
 function setSavingState(isSaving) {
     if (!updateButton) return;
 
@@ -167,7 +96,93 @@ function setSavingState(isSaving) {
     updateButton.textContent = isSaving ? "Saving..." : "Save Changes";
 }
 
-// Load recipe
+/* ---------------- INGREDIENT ROWS (with checkboxes) ---------------- */
+function addIngredientRow(name = "", amount = "", checked = false) {
+    if (!ingredientsContainer) return;
+
+    const row = document.createElement("div");
+    row.className = "ingredient-row" + (checked ? " checked" : "");
+
+    row.innerHTML = `
+        <input type="checkbox" class="ingredient-check" ${checked ? "checked" : ""} aria-label="Mark ingredient">
+        <input class="ingredient-name" placeholder="Ingredient" value="${escapeHtml(name)}">
+        <input class="ingredient-amount" placeholder="Amount" value="${escapeHtml(amount)}">
+        <button type="button" class="ingredient-remove-btn">X</button>
+    `;
+
+    const checkbox = row.querySelector(".ingredient-check");
+    checkbox.addEventListener("change", () => {
+        row.classList.toggle("checked", checkbox.checked);
+    });
+
+    row.querySelector(".ingredient-remove-btn").onclick = () => row.remove();
+    ingredientsContainer.appendChild(row);
+}
+
+function parseIngredientsForRows(raw) {
+    if (!raw) return [];
+    let list = raw;
+
+    if (typeof list === "string") {
+        try {
+            list = JSON.parse(list);
+        } catch {
+            // Fallback: split on newlines/commas
+            return list
+                .split(/\r?\n|,/)
+                .map(s => s.trim())
+                .filter(Boolean)
+                .map(s => ({ name: s, amount: "", checked: false }));
+        }
+    }
+
+    if (!Array.isArray(list)) return [];
+
+    return list.map((item) => {
+        if (typeof item === "string") {
+            return { name: item, amount: "", checked: false };
+        }
+        return {
+            name: item.name || item.ingredient || "",
+            amount: item.amount || "",
+            checked: !!item.checked
+        };
+    });
+}
+
+function collectIngredientsFromRows() {
+    return [...document.querySelectorAll(".ingredient-row")].map((row) => ({
+        name: row.querySelector(".ingredient-name").value.trim(),
+        amount: row.querySelector(".ingredient-amount").value.trim(),
+        checked: row.querySelector(".ingredient-check").checked
+    })).filter(i => i.name || i.amount);
+}
+
+function populateFormFromRecipe(recipe) {
+    if (!recipe || !titleInput || !descriptionInput || !estimatedTimeInput || !instructionsInput || !ingredientsContainer) return;
+
+    titleInput.value = recipe.title || "";
+    descriptionInput.value = recipe.description || "";
+    estimatedTimeInput.value = recipe.estimated_time || "";
+    instructionsInput.value = recipe.instructions || "";
+
+    ingredientsContainer.innerHTML = "";
+    const ingredients = parseIngredientsForRows(recipe.ingredients);
+    if (ingredients.length === 0) {
+        addIngredientRow();
+    } else {
+        ingredients.forEach(ing => addIngredientRow(ing.name, ing.amount, ing.checked));
+    }
+
+    if (recipe.image_url && imagePreview) {
+        const path = /^https?:\/\//i.test(recipe.image_url)
+            ? recipe.image_url
+            : `${API_BASE_URL}${recipe.image_url.startsWith("/") ? recipe.image_url : `/${recipe.image_url}`}`;
+        imagePreview.innerHTML = `<img src="${path}" style="max-width:200px;" alt="Current recipe image">`;
+    }
+}
+
+/* ---------------- LOAD RECIPE ---------------- */
 async function loadRecipe() {
     try {
         const headers = authToken ? { "Authorization": `Bearer ${authToken}` } : {};
@@ -199,10 +214,9 @@ async function loadRecipe() {
     }
 }
 
-// Update recipe
+/* ---------------- UPDATE RECIPE ---------------- */
 async function updateRecipe() {
-
-    if (!titleInput || !descriptionInput || !estimatedTimeInput || !ingredientsInput || !instructionsInput) {
+    if (!titleInput || !descriptionInput || !estimatedTimeInput || !instructionsInput || !ingredientsContainer) {
         alert("Edit form is not ready. Please refresh and try again.");
         return;
     }
@@ -215,10 +229,8 @@ async function updateRecipe() {
     const title = titleInput.value.trim();
     const description = descriptionInput.value.trim();
     const estimated_time = estimatedTimeInput.value.trim();
-    const ingredientsRaw = ingredientsInput.value;
     const instructions = instructionsInput.value.trim();
-
-    const ingredients = parseIngredientsInput(ingredientsRaw);
+    const ingredients = collectIngredientsFromRows();
 
     if (!title || !description || !instructions) {
         setStatus("Title, description, and instructions are required.", "error");
@@ -228,29 +240,53 @@ async function updateRecipe() {
     setSavingState(true);
     setStatus("Saving your changes...", "saving");
 
-    try {
-        const res = await fetchWithFallback(buildRecipeUrls(recipeId), {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${authToken}`
-            },
-            body: JSON.stringify({
-                title,
-                description,
-                estimated_time,
-                ingredients,
-                instructions
-            })
-        });
+    const hasNewImage = imageInput && imageInput.files && imageInput.files[0];
 
-        const data = await res.json();
+    try {
+        let res;
+
+        if (hasNewImage) {
+            // Multipart request when a new image is attached
+            const formData = new FormData();
+            formData.append("title", title);
+            formData.append("description", description);
+            formData.append("estimated_time", estimated_time);
+            formData.append("instructions", instructions);
+            formData.append("ingredients", JSON.stringify(ingredients));
+            formData.append("image", imageInput.files[0]);
+
+            res = await fetchWithFallback(buildRecipeUrls(recipeId), {
+                method: "PUT",
+                headers: { "Authorization": `Bearer ${authToken}` },
+                body: formData
+            });
+        } else {
+            // JSON request when no new image (matches your existing backend contract)
+            res = await fetchWithFallback(buildRecipeUrls(recipeId), {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authToken}`
+                },
+                body: JSON.stringify({
+                    title,
+                    description,
+                    estimated_time,
+                    ingredients,
+                    instructions
+                })
+            });
+        }
+
+        const data = await res.json().catch(() => ({}));
 
         if (res.ok) {
             setStatus("Recipe updated successfully. Redirecting...", "success");
 
-            //  CRITICAL: refresh all pages
+            // CRITICAL: refresh all pages
             localStorage.setItem("recipes_last_updated", Date.now());
+            sessionStorage.removeItem("editingRecipeId");
+            sessionStorage.removeItem("editingRecipeData");
 
             window.setTimeout(() => {
                 window.location.href = "recipes.html";
@@ -267,23 +303,38 @@ async function updateRecipe() {
     }
 }
 
+/* ---------------- INIT ---------------- */
 document.addEventListener("DOMContentLoaded", () => {
     if (!cacheDomElements()) {
         alert("Failed to initialize the edit form.");
         return;
     }
 
-    loadRecipe();
+    // + Add Ingredient button
+    const addBtn = document.getElementById("addIngredientBtn");
+    if (addBtn) addBtn.onclick = () => addIngredientRow();
 
-    [titleInput, descriptionInput, estimatedTimeInput, ingredientsInput, instructionsInput].forEach((field) => {
-        field.addEventListener("input", syncFormUi);
-    });
+    // Image preview when user picks a new file
+    if (imageInput && imagePreview) {
+        imageInput.addEventListener("change", function () {
+            imagePreview.innerHTML = "";
+            if (!this.files[0]) return;
 
-    syncFormUi();
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(this.files[0]);
+            img.style.maxWidth = "200px";
+            imagePreview.appendChild(img);
+        });
+    }
 
-    document.getElementById("editRecipeForm")
-        .addEventListener("submit", (e) => {
+    // Form submit
+    const form = document.getElementById("recipeForm");
+    if (form) {
+        form.addEventListener("submit", (e) => {
             e.preventDefault();
             updateRecipe();
         });
+    }
+
+    loadRecipe();
 });
