@@ -255,15 +255,18 @@ body::before {
 }
 
 @keyframes lemon-drift {
+
     0%,
     100% {
         transform: translateY(0) rotate(-6deg) scale(1);
         opacity: 0.72;
     }
+
     35% {
         transform: translateY(-10px) rotate(6deg) scale(1.05);
         opacity: 0.95;
     }
+
     70% {
         transform: translateY(6px) rotate(-3deg) scale(0.98);
         opacity: 0.8;
@@ -464,7 +467,7 @@ nav,
     border-color: rgba(253, 224, 71, 0.9);
 }
 
-.edit-form-section + .edit-form-section {
+.edit-form-section+.edit-form-section {
     margin-top: 24px;
 }
 
@@ -1041,7 +1044,8 @@ h1 {
 
 /* 1. Recipe Section Buttons (Ingredients/Instructions) */
 .recipe-section-btn {
-    background-color: #6FB34A; /* Matching your existing green */
+    background-color: #6FB34A;
+    /* Matching your existing green */
     color: #ffffff;
     border: none;
     border-radius: 8px;
@@ -1057,7 +1061,8 @@ h1 {
 }
 
 .recipe-section-btn:hover {
-    background-color: #5aa63b; /* Slightly darker on hover */
+    background-color: #5aa63b;
+    /* Slightly darker on hover */
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
@@ -1071,7 +1076,8 @@ h1 {
     background-color: rgba(255, 255, 255, 0.8);
     color: #1e293b;
     border: 1px solid #cbd5e1;
-    border-radius: 20px; /* Pill shape */
+    border-radius: 20px;
+    /* Pill shape */
     padding: 4px 12px;
     font-size: 13px;
     font-weight: 500;
@@ -1121,7 +1127,8 @@ h1 {
 }
 
 /* 4. Search Input Focus */
-#recipe-search:focus, #following-search:focus {
+#recipe-search:focus,
+#following-search:focus {
     outline: none;
     border: 2px solid #6FB34A;
     box-shadow: 0 0 8px rgba(111, 179, 74, 0.4);
@@ -1129,39 +1136,49 @@ h1 {
 
 /* 1. Pin the heart to the top right */
 .card {
-    position: relative; /* This allows the heart to anchor to the card corner */
+    position: relative;
+    /* This allows the heart to anchor to the card corner */
 }
 
 .favorite-heart {
     position: absolute;
     top: 10px;
     right: 10px;
-    margin: 0; /* Remove the auto margins we had before */
+    margin: 0;
+    /* Remove the auto margins we had before */
     z-index: 10;
 }
 
 /* 2. Put Ingredients and Instructions on one line */
 /* We target the buttons that are direct children of the card but NOT in the action div */
-.card > .recipe-section-btn {
-    display: inline-block; 
+.card>.recipe-section-btn {
+    display: inline-block;
     width: auto;
-    margin: 10px 5px 0 0; /* Adds a little gap between them */
+    margin: 10px 5px 0 0;
+    /* Adds a little gap between them */
 }
 
 /* 3. Put Edit, Delete, and Rate on their own line */
 .recipe-actions {
     display: flex;
-    justify-content: center; /* Centers the row of buttons */
-    gap: 8px;               /* Space between the buttons */
-    margin-top: 15px;       /* Pushes the row down slightly */
+    justify-content: center;
+    /* Centers the row of buttons */
+    gap: 8px;
+    /* Space between the buttons */
+    margin-top: 15px;
+    /* Pushes the row down slightly */
     width: 100%;
 }
 
 .recipe-actions button {
-    flex: 1;                /* Makes all three buttons the same width */
-    margin: 0;              /* Removes old block margins */
-    padding: 8px 4px;       /* Slims them down to fit side-by-side */
-    font-size: 12px;        /* Smaller font so they don't wrap on mobile */
+    flex: 1;
+    /* Makes all three buttons the same width */
+    margin: 0;
+    /* Removes old block margins */
+    padding: 8px 4px;
+    /* Slims them down to fit side-by-side */
+    font-size: 12px;
+    /* Smaller font so they don't wrap on mobile */
     white-space: nowrap;
 }
 
@@ -1298,4 +1315,53 @@ h1 {
 #ratingSubmitButton:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* ============================================
+   INGREDIENT ROWS WITH INTERACTIVE CHECKBOXES
+   Append this block to the end of styles.css
+   ============================================ */
+
+.ingredient-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ingredient-row input[type="checkbox"].ingredient-check {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #6b8e23;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.ingredient-row .ingredient-name,
+.ingredient-row .ingredient-amount {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Strike-through and dim when the checkbox is ticked */
+.ingredient-row.checked .ingredient-name,
+.ingredient-row.checked .ingredient-amount {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.ingredient-remove-btn {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.ingredient-remove-btn:hover {
+    background-color: #f1b0b7;
 }

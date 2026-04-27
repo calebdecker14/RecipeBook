@@ -29,7 +29,7 @@
             <a href="aboutus.html">About Us</a>
         </div>
 
-       <div id="profile-menu">
+        <div id="profile-menu">
             <button id="profile-btn" onclick="window.location.href='profile.html'">
                 Account Settings
             </button>
@@ -92,8 +92,6 @@
         <div id="feed" class="my-recipes-feed"></div>
     </div>
 
-      </div>
-
     <button id="shopping-list-btn" class="shopping-list-btn">🛒</button>
 
     <div id="shopping-modal" class="shopping-modal-overlay">
@@ -115,7 +113,8 @@
 
     <div id="commentModal" class="modal-overlay hidden" aria-hidden="true">
         <div class="modal-content">
-            <button type="button" id="commentModalClose" class="modal-close" aria-label="Close comments">&times;</button>
+            <button type="button" id="commentModalClose" class="modal-close"
+                aria-label="Close comments">&times;</button>
             <h3 id="commentModalTitle">Comments</h3>
             <div id="commentList" class="comment-list"></div>
             <textarea id="commentInput" placeholder="Write a comment..."></textarea>
@@ -137,8 +136,8 @@
     <script src="shopping.js"></script>
 
     <div class="zestify-corner-logo">
-    <img src="../uploads/Zestify.png" alt="Zestify Logo">
-</div>
+        <img src="../uploads/Zestify.png" alt="Zestify Logo">
+    </div>
 
     <script>
         const API_BASE_URL = 'http://localhost:3000';
@@ -187,7 +186,10 @@
                 const amount = escapeHtml(item.amount || '');
                 const name = escapeHtml(item.name || item.ingredient || '');
                 const line = `${amount} ${name}`.trim();
-                return line || 'Ingredient';
+                const display = line || 'Ingredient';
+                return item.checked
+                    ? `<span style="text-decoration: line-through; opacity: 0.6;">${display}</span>`
+                    : display;
             }).join('<br>');
         }
 
@@ -260,18 +262,24 @@
             modal.style.display = 'none';
         }
 
-        /* ---------------- INGREDIENT ROWS ---------------- */
-        function addIngredientRow(name = '', amount = '') {
+        /* ---------------- INGREDIENT ROWS (with checkboxes) ---------------- */
+        function addIngredientRow(name = '', amount = '', checked = false) {
             const row = document.createElement('div');
-            row.className = 'ingredient-row';
+            row.className = 'ingredient-row' + (checked ? ' checked' : '');
 
             row.innerHTML = `
+                <input type="checkbox" class="ingredient-check" ${checked ? 'checked' : ''} aria-label="Mark ingredient">
                 <input class="ingredient-name" placeholder="Ingredient" value="${escapeHtml(name)}">
                 <input class="ingredient-amount" placeholder="Amount" value="${escapeHtml(amount)}">
                 <button type="button" class="ingredient-remove-btn">X</button>
             `;
 
-            row.querySelector('button').onclick = () => row.remove();
+            const checkbox = row.querySelector('.ingredient-check');
+            checkbox.addEventListener('change', () => {
+                row.classList.toggle('checked', checkbox.checked);
+            });
+
+            row.querySelector('.ingredient-remove-btn').onclick = () => row.remove();
             ingredientsContainer.appendChild(row);
         }
 
@@ -294,8 +302,9 @@
 
             const ingredients = [...document.querySelectorAll('.ingredient-row')].map(row => ({
                 name: row.querySelector('.ingredient-name').value,
-                amount: row.querySelector('.ingredient-amount').value
-            }));
+                amount: row.querySelector('.ingredient-amount').value,
+                checked: row.querySelector('.ingredient-check').checked
+            })).filter(i => i.name.trim() || i.amount.trim());
 
             const formData = new FormData();
             formData.append('title', title.value);
@@ -416,7 +425,7 @@
             };
             actions.appendChild(deleteBtn);
 
-            /* RATE */
+            /* COMMENT */
             const commentBtn = document.createElement('button');
             commentBtn.className = 'recipe-section-btn';
             commentBtn.textContent = 'Comment';
@@ -675,7 +684,7 @@
                 const description = (r.description || '').toLowerCase();
                 const time = String(r.estimated_time || '').toLowerCase();
                 const instructions = (r.instructions || '').toLowerCase();
-                
+
                 let ingredients = r.ingredients;
                 if (typeof ingredients === 'string') {
                     try {
@@ -705,7 +714,13 @@
         }
 
         /* ---------------- TOGGLE FORM ---------------- */
-        showCreate.onclick = () => createForm.style.display = 'block';
+        showCreate.onclick = () => {
+            createForm.style.display = 'block';
+            // Start with one empty ingredient row, like the edit form does
+            if (ingredientsContainer.children.length === 0) {
+                addIngredientRow();
+            }
+        };
         cancelCreate.onclick = () => createForm.style.display = 'none';
 
         document.getElementById('recipe-modal-close').addEventListener('click', closeRecipeModal);
