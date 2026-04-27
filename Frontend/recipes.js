@@ -99,14 +99,25 @@ function editRecipe(id) {
 async function deleteRecipe(id) {
     if (!confirm("Delete recipe?")) return;
 
-    await fetch(`http://localhost:3000/recipes/${id}`, {
-        method: "DELETE",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    });
+    try {
+        const res = await fetch(`http://localhost:3000/recipes/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
 
-    document.getElementById(`recipe-${id}`).remove();
+        if (res.ok) {
+            const el = document.getElementById(`recipe-${id}`);
+            if (el) el.remove();
+        } else {
+            const err = await res.json().catch(() => ({}));
+            alert(`Failed to delete: ${err.error || res.status}`);
+        }
+    } catch (e) {
+        console.error('deleteRecipe error:', e);
+        alert('Network error while deleting recipe.');
+    }
 }
 
 //  Comment

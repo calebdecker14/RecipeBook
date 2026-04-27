@@ -325,6 +325,31 @@ exports.getMyRecipes = async (req, res) => {
 };
 
 // Get following feed
+exports.deleteRecipe = async (req, res) => {
+    try {
+        const recipeId = parseInt(req.params.id, 10);
+        const userId = req.user.id;
+
+        await pool.query('DELETE FROM meal_plans WHERE recipe_id = ?', [recipeId]);
+        await pool.query('DELETE FROM comments WHERE recipe_id = ?', [recipeId]);
+        await pool.query('DELETE FROM ratings WHERE recipe_id = ?', [recipeId]);
+
+        const [result] = await pool.query(
+            'DELETE FROM recipes WHERE id = ? AND user_id = ?',
+            [recipeId, userId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(403).json({ error: 'Unauthorized or recipe not found' });
+        }
+
+        res.json({ message: 'Recipe deleted successfully' });
+    } catch (err) {
+        console.error('deleteRecipe error:', err);
+        res.status(500).json({ error: 'Failed to delete recipe', details: err.message });
+    }
+};
+
 exports.getFollowingFeed = async (req, res) => {
     try {
         const userId = req.user.id;

@@ -72,7 +72,6 @@
                     </select>
                 </div>
             
-                <button type="button" id="apply-filter-all-btn" class="search-filter-btn">Apply Filter</button>
             </div>
             <div id="feed" class="community-feed"></div>
         </div>
@@ -101,7 +100,6 @@
                         <option value="alpha-desc">Z-A</option>
                     </select>
                 </div>
-                <button type="button" id="apply-filter-following-btn" class="search-filter-btn">Apply Filter</button>
             </div>
             <div id="followingFeed" class="community-feed"></div>
         </div>
@@ -874,10 +872,26 @@
 
             document.getElementById('all-filter-btn').addEventListener('click', () => toggleFilterPanel('filterPanelAll', 'all-filter-btn'));
             document.getElementById('following-filter-btn').addEventListener('click', () => toggleFilterPanel('filterPanelFollowing', 'following-filter-btn'));
-            document.getElementById('apply-filter-all-btn').addEventListener('click', filterFeed);
-            document.getElementById('apply-filter-following-btn').addEventListener('click', filterFollowingFeed);
         });
     </script>
+
+    <button id="shopping-list-btn" class="shopping-list-btn">🛒</button>
+
+    <div id="shopping-modal" class="shopping-modal-overlay">
+        <div class="modal-content-shopping">
+            <span class="shopping-close-btn">&times;</span>
+            <h2>Shopping List</h2>
+            <textarea id="shopping-list-text" placeholder="Start typing..."></textarea>
+            <button id="save-shopping-btn" class="save-list-btn">Save Changes</button>
+            <div id="save-status"></div>
+        </div>
+    </div>
+
+    <script src="shopping.js"></script>
+
+    <div class="zestify-corner-logo">
+        <img src="../uploads/Zestify.png" alt="Zestify Logo">
+    </div>
 
 </body>
 
