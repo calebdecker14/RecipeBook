@@ -51,6 +51,7 @@ const {
     getRecipeById,
     getMyRecipes,
     updateRecipe,
+    deleteRecipe,
     getFollowingFeed
 } = require('../controllers/recipesController');
 
@@ -127,6 +128,9 @@ const conditionalUpload = (req, res, next) => {
 };
 
 router.put('/:id', authenticateToken, conditionalUpload, updateRecipe);
+
+// Protected route to delete a recipe (requires auth + ownership)
+router.delete('/:id', authenticateToken, deleteRecipe);
 
 
 // =====================

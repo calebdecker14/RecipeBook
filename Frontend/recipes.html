@@ -63,7 +63,6 @@
                     <option value="alpha-desc">Z-A</option>
                 </select>
             </div>
-            <button type="button" id="apply-filter-btn" class="search-filter-btn">Apply Filter</button>
         </div>
 
         <div id="createForm" class="card" style="display:none;">
@@ -472,12 +471,22 @@
         async function deleteRecipe(id) {
             if (!confirm("Delete this recipe?")) return;
 
-            await fetch(`${API_BASE_URL}/recipes/${id}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            try {
+                const res = await fetch(`${API_BASE_URL}/recipes/${id}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}` }
+                });
 
-            loadFeed();
+                if (res.ok) {
+                    loadFeed();
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    alert(`Failed to delete: ${err.error || res.status}`);
+                }
+            } catch (e) {
+                console.error('deleteRecipe error:', e);
+                alert('Network error while deleting recipe.');
+            }
         }
 
         /* ---------------- RATE ---------------- */
@@ -738,8 +747,6 @@
         });
         document.getElementById('ratingSubmitButton').addEventListener('click', submitRating);
         document.getElementById('recipe-filter-btn').addEventListener('click', toggleFilterPanel);
-        document.getElementById('apply-filter-btn').addEventListener('click', filterRecipes);
-
         /* ---------------- INIT ---------------- */
         document.addEventListener('DOMContentLoaded', loadFeed);
     </script>
